@@ -1,12 +1,12 @@
 ---
-Title: r.eusilc-package workshop
-Author: Markus Kainu
-Date: Feb 17, 2014
+title: r.eusilc-package workshop
+author: Markus Kainu
+date: Feb 17, 2014
 ---
 
 
 
 Material
---------------------
+==========================
 
 - [Introductory slides](intro.html)
