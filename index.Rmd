@@ -1,7 +1,10 @@
-r.eusilc-package
-==============
+---
+Title: r.eusilc-package workshop
+Author: Markus Kainu
+Date: Feb 17, 2014
+---
 
-*Merge eu-silc cross-sectional and longitudinal raw .csv datasets*
+
 
 Material
 --------------------
