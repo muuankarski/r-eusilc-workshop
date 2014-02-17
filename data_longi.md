@@ -372,14 +372,31 @@ dat.per$RB030 <- as.numeric(dat.per$RB030)
 
 
 ```r
-tbl <- as.data.frame(round(prop.table(table(dat.per$RB010,dat.per$RB020,dat.per$econStatus),2),4)*100)
+tbl <- as.data.frame(table(dat.per$RB010,dat.per$RB020,dat.per$econStatus))
+library(reshape2)
+tbl.w <- dcast(data=tbl, Var1 + Var2 ~ Var3, value.var="Freq")
+tbl.w$sum <- rowSums(tbl.w[,3:13])
+tbl.w[,3] <- tbl.w[,3]/tbl.w[,14]*100
+tbl.w[,4] <- tbl.w[,4]/tbl.w[,14]*100
+tbl.w[,5] <- tbl.w[,5]/tbl.w[,14]*100
+tbl.w[,6] <- tbl.w[,6]/tbl.w[,14]*100
+tbl.w[,7] <- tbl.w[,7]/tbl.w[,14]*100
+tbl.w[,8] <- tbl.w[,8]/tbl.w[,14]*100
+tbl.w[,9] <- tbl.w[,9]/tbl.w[,14]*100
+tbl.w[,10] <- tbl.w[,10]/tbl.w[,14]*100
+tbl.w[,11] <- tbl.w[,11]/tbl.w[,14]*100
+tbl.w[,12] <- tbl.w[,12]/tbl.w[,14]*100
+tbl.w[,13] <- tbl.w[,13]/tbl.w[,14]*100
+tbl.w$sum <- NULL
+tbl <- melt(tbl.w, id.vars=c("Var1","Var2"))
+
 library(ggplot2)
-ggplot(tbl, aes(x=Var1,y=Freq,fill=Var2)) +
-  geom_bar(stat="identity")
+ggplot(tbl, aes(x=Var1,y=value,fill=variable)) +
+  geom_bar(stat="identity") +
+  facet_wrap(~Var2)
 ```
 
 ![plot of chunk plot1](figure/plot1.png) 
-
 
 
 

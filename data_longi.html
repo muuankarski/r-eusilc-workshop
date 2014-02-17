@@ -723,10 +723,28 @@ dat.uniq$dup &lt;-<span class="st"> </span><span class="ot">NULL</span>
 dat.per &lt;-<span class="st"> </span>dat.uniq
 dat.per$RB030 &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(dat.per$RB030)</code></pre>
 <h3 id="analyysejä"><span class="header-section-number">2.2.3</span> Analyysejä</h3>
-<pre class="sourceCode r"><code class="sourceCode r">tbl &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">round</span>(<span class="kw">prop.table</span>(<span class="kw">table</span>(dat.per$RB010,dat.per$RB020,dat.per$econStatus),<span class="dv">2</span>),<span class="dv">4</span>)*<span class="dv">100</span>)
+<pre class="sourceCode r"><code class="sourceCode r">tbl &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">table</span>(dat.per$RB010,dat.per$RB020,dat.per$econStatus))
+<span class="kw">library</span>(reshape2)
+tbl.w &lt;-<span class="st"> </span><span class="kw">dcast</span>(<span class="dt">data=</span>tbl, Var1 +<span class="st"> </span>Var2 ~<span class="st"> </span>Var3, <span class="dt">value.var=</span><span class="st">&quot;Freq&quot;</span>)
+tbl.w$sum &lt;-<span class="st"> </span><span class="kw">rowSums</span>(tbl.w[,<span class="dv">3</span>:<span class="dv">13</span>])
+tbl.w[,<span class="dv">3</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">3</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">4</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">4</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">5</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">5</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">6</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">6</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">7</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">7</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">8</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">8</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">9</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">9</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">10</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">10</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">11</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">11</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">12</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">12</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">13</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">13</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w$sum &lt;-<span class="st"> </span><span class="ot">NULL</span>
+tbl &lt;-<span class="st"> </span><span class="kw">melt</span>(tbl.w, <span class="dt">id.vars=</span><span class="kw">c</span>(<span class="st">&quot;Var1&quot;</span>,<span class="st">&quot;Var2&quot;</span>))
+
 <span class="kw">library</span>(ggplot2)
-<span class="kw">ggplot</span>(tbl, <span class="kw">aes</span>(<span class="dt">x=</span>Var1,<span class="dt">y=</span>Freq,<span class="dt">fill=</span>Var2)) +
-<span class="st">  </span><span class="kw">geom_bar</span>(<span class="dt">stat=</span><span class="st">&quot;identity&quot;</span>)</code></pre>
+<span class="kw">ggplot</span>(tbl, <span class="kw">aes</span>(<span class="dt">x=</span>Var1,<span class="dt">y=</span>value,<span class="dt">fill=</span>variable)) +
+<span class="st">  </span><span class="kw">geom_bar</span>(<span class="dt">stat=</span><span class="st">&quot;identity&quot;</span>) +
+<span class="st">  </span><span class="kw">facet_wrap</span>(~Var2)</code></pre>
 <div class="figure">
 <img src="figure/plot1.png" alt="plot of chunk plot1" /><p class="caption">plot of chunk plot1</p>
 </div>
