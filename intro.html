@@ -796,6 +796,18 @@ body {
   -o-transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985);
   transition: width 800ms cubic-bezier(0.26, 0.86, 0.44, 0.985); }
 
+/*********************************************
+ * code
+ *********************************************/
+
+.reveal pre code.r {
+    border-collapse: collapse;
+	border-spacing: 0;
+    line-height: 1.3em;
+	font-size: 1.0em;
+	font-family: monospace;
+}
+
 
 /*********************************************
  * Table
@@ -1256,9 +1268,9 @@ hljs.initHighlightingOnLoad();
 
 </section>
 <section data-transition="fade" data-transition-speed="fast">
-<h3>Description</h3>
+<h3>What &amp; why</h3>
 <div class="slideContent" >
-<p>Package that does several labour internsive and error prone tasks</p>
+<p>Package that does several labour intensive and error prone tasks</p>
 
 <ul>
 <li>merges data- and register files both at the
@@ -1274,6 +1286,33 @@ hljs.initHighlightingOnLoad();
 <li>cross-sectional files</li>
 </ul></li>
 </ul>
+
+</div>
+
+</section>
+<section data-transition="fade" data-transition-speed="fast">
+<h3>Requirements</h3>
+<div class="slideContent" >
+
+</div>
+
+</section>
+<section data-transition="fade" data-transition-speed="fast">
+<h3>merge-commands</h3>
+<div class="slideContent" >
+<h2>Simple read of personal files from longitudinal data</h2>
+
+<pre><code class="r">per_long &lt;- merge_longi_personal(origin.path=&quot;/media/baikal/Asiakirjat/data/eu_silc/2011/longi_rev0&quot;,
+                                 destination.path=&quot;~/demo&quot;,
+                                 format=&quot;RData&quot;)
+</code></pre>
+
+<h2>Simple read of personal files from cross-sectional data</h2>
+
+<pre><code class="r">hh_cross &lt;- merge_cross_household(origin.path=&quot;/media/baikal/Asiakirjat/data/eu_silc/2011/longi_rev0&quot;,
+                                 destination.path=&quot;~/demo&quot;,
+                                 format=&quot;RData&quot;)
+</code></pre>
 
 </div>
 

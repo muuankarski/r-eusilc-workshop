@@ -1,0 +1,897 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+  <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+  <meta http-equiv="Content-Style-Type" content="text/css" />
+  <meta name="generator" content="pandoc" />
+  <meta name="author" content="Markus Kainu" />
+  <title>Poolatun Pitkittäisaineiston rakentaminen EU-silc datasta</title>
+  <style type="text/css">code{white-space: pre;}</style>
+  <style type="text/css">
+table.sourceCode, tr.sourceCode, td.lineNumbers, td.sourceCode {
+  margin: 0; padding: 0; vertical-align: baseline; border: none; }
+table.sourceCode { width: 100%; line-height: 100%; }
+td.lineNumbers { text-align: right; padding-right: 4px; padding-left: 4px; color: #aaaaaa; border-right: 1px solid #aaaaaa; }
+td.sourceCode { padding-left: 5px; }
+code > span.kw { color: #007020; font-weight: bold; }
+code > span.dt { color: #902000; }
+code > span.dv { color: #40a070; }
+code > span.bn { color: #40a070; }
+code > span.fl { color: #40a070; }
+code > span.ch { color: #4070a0; }
+code > span.st { color: #4070a0; }
+code > span.co { color: #60a0b0; font-style: italic; }
+code > span.ot { color: #007020; }
+code > span.al { color: #ff0000; font-weight: bold; }
+code > span.fu { color: #06287e; }
+code > span.er { color: #ff0000; font-weight: bold; }
+  </style>
+  <style>
+  
+  @font-face {
+    font-family: 'Lato';
+    font-style: normal;
+    font-weight: 400;
+    src: local('Lato Regular'), local('Lato-Regular'), url(fonts/Lato.woff) format('woff');
+  }
+  @font-face {
+    font-family: 'Lato';
+    font-style: normal;
+    font-weight: 700;
+    src: local('Lato Bold'), local('Lato-Bold'), url(fonts/LatoBold.woff) format('woff');
+  }
+  @font-face {
+    font-family: 'Lato';
+    font-style: normal;
+    font-weight: 900;
+    src: local('Lato Black'), local('Lato-Black'), url(fonts/LatoBlack.woff) format('woff');
+  }
+  @font-face {
+    font-family: 'Lato';
+    font-style: italic;
+    font-weight: 400;
+    src: local('Lato Italic'), local('Lato-Italic'), url(fonts/LatoItalic.woff) format('woff');
+  }
+  
+  
+  -something { /* Just to escape the effect of html tag above in pandoc*/
+  
+  }
+  
+  .title /* Pandoc title header (h1.title) */
+      {
+      	text-align: center;
+  	border-width:0px;
+  	font-size: 1.5em;
+  	margin: 0 0 5px 0;
+  	word-spacing: .1em;
+  	border-bottom: 0px;
+      }
+  
+  .author /* Pandoc author(s) header (h2.author) */
+      {
+      text-align: center;
+      font-size: 1.1em;
+      line-height: 1.2em;
+      border-bottom: 0px;
+      }
+  
+  .date /* Pandoc date header (h3.date) */
+      {
+  	font-family:  Lato, Arial;
+  	text-align: center;
+  	font-size: 1.1em;
+  	line-height: 1.2em;
+      }
+  
+  
+  body {
+      margin-left: 240px;
+      max-width:750px; 
+      border: 0px;
+      font-family: Lato, Helvetica, sans-serif;
+  }
+  
+  
+  #toc {
+      font-size:0.9em;
+      height: 100%;
+      position: fixed; 
+      width: 220px;
+      left: 5px;
+      padding-top: 20px;
+      color: #003333;
+      border-right: 1px dashed #C1C1C1;
+  }
+  
+  #toc_header {
+      font-size: 1em;
+      font-weight: bold;    
+      border-bottom: 1px dashed #C1C1C1;
+      color: black;
+  }
+  
+  
+  
+  #TOC li {
+      padding: 2px 4px;
+      margin-left: 2px;
+  }
+  
+  
+  #TOC a {
+      color: #003333;
+      display: block;
+  }
+  
+  
+  #TOC {
+      font-size:0.9em;
+      height: 100%;
+      position: fixed; 
+      width: 220px;
+      left: 5px;
+      padding-top: 20px;
+      color: #003333;
+      border-right: 1px dashed #C1C1C1;
+  }
+  
+  #TOC_HEADER {
+      font-size: 1em;
+      font-weight: bold;    
+      border-bottom: 1px dashed #C1C1C1;
+      color: black;
+  }
+  
+  
+  
+  #TOC li {
+      padding: 2px 4px;
+      margin-left: 2px;
+  }
+  
+  
+  #TOC a {
+      color: #003333;
+      display: block;
+  }
+  
+  
+  blockquote {
+  	padding-left: .5em; 
+      border-left: 2px solid #C1C1C1;
+  	font-style: italic;
+  }
+  
+  
+  pre {	
+     margin-top: 0;
+     max-width: 95%;
+     border: 1px dashed #ccc;
+     white-space: pre-wrap;
+     font-size:1.0em;
+      background: #FFFFFF;
+  }
+  
+  pre code {
+     display: block; 
+     padding: 0.2em;
+     font-size:1.0em;
+  }
+  
+  code.r, code.cpp {
+     background-color: #ECEEF0;
+  }
+  
+  
+  
+  ul {
+  	font-size: 100% !important;
+  	font-family: Lato, Helvetica, sans-serif;
+  }
+  li {
+  	font-family: Lato, Helvetica, sans-serif;
+   	font-size: 1em;
+   	line-height: 1.1em;
+  }
+  
+  
+  p {
+  	font-family: Lato, Helvetica, sans-serif;
+  	padding-top: 2px;
+  	padding-bottom: 2px;
+  	font-size: 1em;
+  	line-height: 1.2em;
+  }
+  ol {
+  	list-style: decimal outside;
+  	list-style-type: decimal;
+  	float: none;
+  	margin: .5em 0 .5em 30px;
+  	padding: 0;
+  }
+  ul {
+  	margin: .2em 0 .2em 10px;
+  	padding: 0;
+  }
+  UL li, ol li {
+  	line-height: 1.1em;
+  	padding: 2px;
+  }
+  a:link {
+  	color: #657b83;
+     /* text-decoration: none; */
+  }
+  a:hover {
+  	color: #657b83;
+  }
+  a:visited {
+  	color: #657b83;
+  }
+  a:focus {
+  	color: #657b83;
+  }
+  a:active {
+  	color: #657b83;
+  }
+  
+  h1 {
+  	font-family:  Lato, Arial;
+  	font-size: 1.3em;
+  	padding: 2px;
+  	line-height: 1.3em;
+      font-weight: 400;
+  	/*letter-spacing: 0.06em;
+  	word-spacing: .1em;*/
+      border-bottom: 0.5px solid #657b83;
+  	text-transform:uppercase;
+      color: #657b83;
+  }
+  h2 {
+  	font-family:  Lato, Arial;
+  	font-size: 1.1em;
+  	padding: 2px;
+  	line-height: 1.1em;
+      font-weight: 300;
+  	letter-spacing: 0.05em;
+  	word-spacing: .1em;
+  	border-bottom: 0.5px dashed #657b83;
+  /*	text-transform:capitalize;*/
+      color: #657b83;
+  
+  }
+  h3 {
+  	font-family:  Lato, Arial;
+  	font-size: 1.1em;
+  	padding: 2px;
+  	line-height: 1.1em;
+      font-weight: 300;
+  	letter-spacing: 0.05em;
+  	word-spacing: .1em;
+      color: #657b83;
+  
+  }
+  h4 {
+  	font-family: Lato;
+  	font-size: 1.0em;
+  	padding: 2px;
+  	line-height: 1.0em;
+  	color: #555;
+  	font-weight: italic;
+      color: #657b83;
+  }
+  h5 {
+  	font-family: Avant Garde;
+  	font-size: 1.05em;
+  	padding: 2px;
+  	line-height: 1.15em;
+  	color: #555;
+  	font-weight: normal;
+      color: #657b83;
+  }
+  h6 {
+  	font-family: Lato;
+  	font-size: 1em;
+  	padding: 2px;
+  	line-height: 1.1em;
+  	color: #555;
+  	font-weight: normal;
+      color: #657b83;
+  }
+  p.caption, table caption, caption{
+      margin-top:0em;
+      padding:2px;
+      font-weight: 600;
+      font-size:1.0em;
+      text-align:left;
+      color: #657b83;
+  }
+  
+  /* table styles */
+  table {
+  	border-collapse: collapse;
+  	border-spacing: 0;
+      line-height: 1.4em;
+  	font-size: 0.9em;
+  	/*font-family: monospace;*/
+  
+  }
+  .views-table, table {
+  	margin-left: 2px;
+  	margin-bottom: 10px;
+  	/*width: 1300px;*/
+  }
+  tr {
+  	line-height: 1.2em;
+  	border-bottom: #9e9e9e thin solid;
+  }
+  tr:last-child {
+  	line-height: 1.2em;
+  }
+  th {
+  	margin: 5px 0 5px 0;
+  	padding: 0 5px 0 5px;
+  /*	border-right: #9e9e9e thin solid; */
+  	text-align: left;
+  	border-bottom: #9e9e9e thin solid;
+  }
+  th:last-child {
+  	margin: 5px 0 5px 0;
+  	padding: 0 5px 0 5px;
+  /*	border-right: #9e9e9e thin solid; */
+  	text-align: left;
+  }
+  th:first-child {
+  	margin: 5px 0 5px 0;
+  	padding: 0 5px 0 5px;
+  /*	border: #9e9e9e thin solid; */
+  }
+  tbody tr {
+  	line-height: 1.2em;
+  /*	border-left: #9e9e9e thin solid; */
+  }
+  tbody tr:nth-child(odd) {
+  	line-height: 1.2em;
+  	background-color: #F3F5F5;
+  }
+  td {
+  	padding: 0 5px 0 5px;
+  /*	border-right: #9e9e9e thin solid; */
+  }
+  td:last-child {
+  	padding: 0 5px 0 5px;
+  }
+  DL {
+  	margin: .3em 0 .3em 0;
+  }
+  DT {
+  	margin: .3em 0 .3em 0;
+  }
+  DD {
+  	line-height: 1.5em;
+  	list-style: none;
+  	margin: .7em 0 .7em 2em;
+  }
+  td.active {
+  	background-color: transparent!important;
+  }
+  tr:last-child {
+  	border-bottom: #9e9e9e thin solid;
+  }
+  tr:first-child {
+  	border-top: #9e9e9e thin solid;
+  }
+  th:last-child {
+  /*	border-left: #9e9e9e thin solid; */
+  }
+  th:last-child {
+  	/*border-right: #9e9e9e thin solid;*/
+  }
+  </style>
+  
+  <link href='http://fonts.googleapis.com/css?family=Lato' rel='stylesheet' type='text/css'>
+</head>
+<body>
+<div id="header">
+<h1 class="title">Poolatun Pitkittäisaineiston rakentaminen EU-silc datasta</h1>
+<h2 class="author">Markus Kainu</h2>
+<h3 class="date">Feb 17, 2014</h3>
+</div>
+<div id="TOC">
+<ul>
+<li><a href="#ajatus"><span class="toc-section-number">1</span> Ajatus</a></li>
+<li><a href="#raakadatojen-paneeli-yhdistäminen-ja-poolaaminen-eri-vuosilta"><span class="toc-section-number">2</span> Raakadatojen (paneeli) yhdistäminen ja poolaaminen eri vuosilta</a><ul>
+<li><a href="#raakadatojen-paneeli-yhdistäminen"><span class="toc-section-number">2.1</span> Raakadatojen (paneeli) yhdistäminen</a><ul>
+<li><a href="#paketin-asentaminen"><span class="toc-section-number">2.1.1</span> Paketin asentaminen</a></li>
+<li><a href="#yksilötason-raakadatojen-yhdistäminen"><span class="toc-section-number">2.1.2</span> Yksilötason raakadatojen yhdistäminen</a></li>
+</ul></li>
+<li><a href="#eri-vuosien-datojen-yhdistäminen"><span class="toc-section-number">2.2</span> Eri vuosien datojen yhdistäminen</a><ul>
+<li><a href="#helppo-esimerkki"><span class="toc-section-number">2.2.1</span> Helppo esimerkki</a></li>
+<li><a href="#monimutkaisempi-esimerkki"><span class="toc-section-number">2.2.2</span> Monimutkaisempi esimerkki</a></li>
+<li><a href="#analyysejä"><span class="toc-section-number">2.2.3</span> Analyysejä</a></li>
+</ul></li>
+</ul></li>
+<li><a href="#tiettyjen-tapahtumien-eristäminen-ja-diskreetin-datan-luominen"><span class="toc-section-number">3</span> Tiettyjen tapahtumien eristäminen ja diskreetin datan luominen</a><ul>
+<li><a href="#case-entry-to-pension"><span class="toc-section-number">3.1</span> Case: Entry to pension</a></li>
+</ul></li>
+<li><a href="#tilastolliset-pitkittäisanalyysit"><span class="toc-section-number">4</span> Tilastolliset pitkittäisanalyysit</a></li>
+<li><a href="#sotkua.."><span class="toc-section-number">5</span> Sotkua..</a><ul>
+<li><a href="#household-data"><span class="toc-section-number">5.1</span> household data</a></li>
+</ul></li>
+</ul>
+</div>
+<h1 id="ajatus"><span class="header-section-number">1</span> Ajatus</h1>
+<p>Pitkittäiaineiston rakentamisen sekä pitkittäisanalyysien tekeminen jaetaan tässä kolmeen vaiheeseen:</p>
+<ol style="list-style-type: decimal">
+<li>raakadatojen yhdistäminen ja poolaaminen eri vuosilta</li>
+<li>tiettyjen tapahtumien eristäminen ja diskreetin datan luominen</li>
+<li>tilastolliset pitkittäisanalyysit</li>
+</ol>
+<p>Ensimmäisen vaiheen raakadatojen yhdistäminen on automatisoitu <a href="https://github.com/muuankarski/r.eusilc">r.eusilc</a>-paketiksi. Datojen poolaaminen vaati jo käsityötä, sillä eri vuosien datat eroavat toisistaan muuttujien osalta.</p>
+<p>Toinen vaihe on työläin ja riippuu paljon tapahtumasta, jota tarkastellaan. Mä kirjoittaisin tätä maanantaina valmiiksi jos Henna voit kertoa tarkemmin mistä tapahtumasta on kyse ja millä muuttuj(a/i)lla olet sitä aikonut tutkia. Sekä taustamuuttujat ja vastemuuttujat kiinnostaisi. Kirjoittaisin nämä skriptit + dokumentaation mahdollisimman pitkälle, jotta voitaisiin tiistaina käyttään enemmän aikaa siihen miksi näin tehdään kuin siihen mitä tehdään.</p>
+<p>Teen kaiken vaan R:llä koska osaan sen ja koska R-komentoja on mahdollista ajaa suoraan SPSS:stä (tuore ohje 2013 lokakuulta: http://www.ibm.com/developerworks/library/ba-call-r-spss/) tai upottaa Statan ja SAS:in työvirtoihin.</p>
+<p>Kolmanteen vaiheeseen mua kiinnostaa se, mitä pitkittäisanalyysejä olet ajatellut tehdä ja millä ohjelmalla. Mulla on valmiina jotain survival analyysejä and sequence analyysejä, ja voin yrittää soveltaa niitä sun tapaukseen ihan esimerkkinä jos ehdin.</p>
+<h1 id="raakadatojen-paneeli-yhdistäminen-ja-poolaaminen-eri-vuosilta"><span class="header-section-number">2</span> Raakadatojen (paneeli) yhdistäminen ja poolaaminen eri vuosilta</h1>
+<p>Eu-silc datat toimitetaan laser-levyllä, joissa yhdellä levyllä on <strong>yhden vuoden</strong> ja joko <em>cross-sectional</em> tai <em>longitudinal</em> -versio datasta. .csv-muotoiset data on nimetty tyyliin <code>UDB_L06D_ver 2006-2 from 01-03-2009</code>, joka tässä tapauksessa tarkoittaa</p>
+<ul>
+<li>user database</li>
+<li>longitudinal</li>
+<li>d-file (household register)</li>
+<li>vuoden 2006 datan revision 2</li>
+<li>julkaistu vuonna 2009</li>
+</ul>
+<p>Jotta näiden ohjeiden noudattaminen onnistuu, tulee raakadatojen nimiä muuttaa siten, että:</p>
+<ul>
+<li><code>UDB_L06R_ver 2006-2 from 01-03-2009.csv</code> =&gt;&gt; <code>r_file.csv</code></li>
+<li><code>UDB_L06P_ver 2006-2 from 01-03-2009.csv</code> =&gt;&gt; <code>p_file.csv</code></li>
+<li><code>UDB_L06D_ver 2006-2 from 01-03-2009.csv</code> =&gt;&gt; <code>d_file.csv</code></li>
+<li><code>UDB_L06H_ver 2006-2 from 01-03-2009.csv</code> =&gt;&gt; <code>h_file.csv</code></li>
+</ul>
+<p>tämä nimimuutos siksi, että automatiointi on helpompi tehdä. Suosittelen sijoittamaan raakatiedostot esim. alla olevan tyyppiseen hakemistorakenteeseen:</p>
+<pre class="sourceCode r"><code class="sourceCode r">
+data
+|---eusilc
+|<span class="st">    </span><span class="er">|</span><span class="st"> </span>---<span class="st"> </span><span class="dv">2008</span>
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>--<span class="st"> </span>longi_rev1
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>r_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>p_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>d_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>h_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>--<span class="st"> </span>cross_rev2
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>r_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>p_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>d_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>h_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st"> </span>---<span class="st"> </span><span class="dv">2009</span>
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>--<span class="st"> </span>longi_rev0
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>r_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>p_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>d_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>h_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>--<span class="st"> </span>cross_rev1
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>r_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>p_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>d_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>h_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st"> </span>---<span class="st"> </span>merged
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>--<span class="st"> </span><span class="dv">2008</span>
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>per_longi.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>hh_longi.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>hh_cross.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>hh_cross.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>--<span class="st"> </span><span class="dv">2009</span>
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>per_longi.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>hh_longi.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>hh_cross.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>hh_cross.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>--<span class="st"> </span><span class="dv">2010</span>
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>per_longi.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>hh_longi.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>hh_cross.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>hh_cross.csv</code></pre>
+<p>Tässä esimerkissä raakadata vuoden 2010 pitkittäisaneistolle ovat muotoa: <code>~/data/eu_silc/2010/longi_rev1</code>, jolloin ko. hakemistossa olisi neljä .csv tiedostoa pitkittäisaineisosta vuoden 2010 revision 1.</p>
+<h2 id="raakadatojen-paneeli-yhdistäminen"><span class="header-section-number">2.1</span> Raakadatojen (paneeli) yhdistäminen</h2>
+<p>Nyt olemme kiinnostuneet vain yksilötason datoista, joten lataamme ensin kaikki 2010 ja aikaisemmin julkaistut yksilötason paneelidatat R:ään sekä tallennamme yhdistellyt data uudeen hakemistoon. Käytämme siinä apuna r.eusilc-pakettia.</p>
+<h3 id="paketin-asentaminen"><span class="header-section-number">2.1.1</span> Paketin asentaminen</h3>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(devtools)
+<span class="kw">install_github</span>(<span class="st">&quot;r.eusilc&quot;</span>,<span class="st">&quot;muuankarski&quot;</span>)
+<span class="kw">library</span>(r.eusilc)</code></pre>
+<h3 id="yksilötason-raakadatojen-yhdistäminen"><span class="header-section-number">2.1.2</span> Yksilötason raakadatojen yhdistäminen</h3>
+<p>Seuraava rivit lukevat raakadatat, yhdistävät sen ja kirjoittavat .csv-muotoon demo-kansioon. <code>data.table=TRUE</code> attribuutti käyttää <a href="http://cran.r-project.org/web/packages/data.table/index.html">data.table</a>-paketin hieman eksperimentaalia <code>fread</code>-funktiota .csv-datojen lukemiseen, joka on huimasti <code>read.csv</code>-funktiota nopeampi. <code>data.table=TRUE</code> käyttö edellyttää pakettien <strong>data.table</strong> ja <strong>bit64</strong> asennusta.</p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># valitaan muuttujat</span>
+var.list1 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;PER_ID_Y&quot;</span>, <span class="co"># unique year, cntry, personal ID</span>
+              <span class="st">&quot;PER_ID&quot;</span>, <span class="co"># unique cntry, personal ID</span>
+              <span class="st">&quot;RB010&quot;</span>,  <span class="co"># year</span>
+              <span class="st">&quot;RB020&quot;</span>,  <span class="co"># cntry</span>
+              <span class="st">&quot;RB030&quot;</span>,  <span class="co"># Personal ID</span>
+              <span class="st">&quot;RB040&quot;</span>,  <span class="co"># Current Household ID</span>
+              <span class="st">&quot;RB060&quot;</span>,  <span class="co"># Personal base weight</span>
+              <span class="st">&quot;RB080&quot;</span>,  <span class="co"># Year of birth</span>
+              <span class="st">&quot;RB090&quot;</span>,  <span class="co"># Sex</span>
+              <span class="st">&quot;RB110&quot;</span>,  <span class="co"># Membership status</span>
+              <span class="st">&quot;RB210&quot;</span>,  <span class="co"># Basic activity status</span>
+              <span class="st">&quot;RB230&quot;</span>,  <span class="co"># Mother ID</span>
+              <span class="st">&quot;RX010&quot;</span>,  <span class="co"># Age at the date of the interview</span>
+              <span class="st">&quot;RX020&quot;</span>,  <span class="co"># Age at the end of the income reference period</span>
+              <span class="co"># ----------- from personal data ----------------------</span>
+              <span class="st">&quot;PB190&quot;</span>,  <span class="co"># Marital status</span>
+              <span class="st">&quot;PB200&quot;</span>,  <span class="co"># Consensual union</span>
+              <span class="st">&quot;PY140G&quot;</span>, <span class="co"># Education-related allowances(gross)</span>
+              <span class="st">&quot;PL030&quot;</span>,  <span class="co"># Self-defined current economic status</span>
+              <span class="st">&quot;PL031&quot;</span>,  <span class="co"># Self-defined current economic status</span>
+              <span class="st">&quot;PL040&quot;</span>,  <span class="co"># Status in employment</span>
+              <span class="st">&quot;PY010N&quot;</span>, <span class="co"># Employee cash or near cash income(gross)</span>
+              <span class="st">&quot;PY010G&quot;</span>, <span class="co"># Employee cash or near cash income(gross)</span>
+              <span class="st">&quot;PY140N&quot;</span>, <span class="co"># Education-related allowances</span>
+              <span class="st">&quot;PY100N&quot;</span>, <span class="co"># Old-age benefits(net)</span>
+              <span class="st">&quot;PL210A&quot;</span>, <span class="co"># Main activity on January</span>
+              <span class="st">&quot;PL210B&quot;</span>, <span class="co"># Main activity on February</span>
+              <span class="st">&quot;PL210C&quot;</span>, <span class="co"># Main activity on March</span>
+              <span class="st">&quot;PL210D&quot;</span>, <span class="co"># Main activity on April</span>
+              <span class="st">&quot;PL210E&quot;</span>, <span class="co"># Main activity on May</span>
+              <span class="st">&quot;PL210F&quot;</span>, <span class="co"># Main activity on June</span>
+              <span class="st">&quot;PL210G&quot;</span>, <span class="co"># Main activity on July</span>
+              <span class="st">&quot;PL210H&quot;</span>, <span class="co"># Main activity on August</span>
+              <span class="st">&quot;PL210I&quot;</span>, <span class="co"># Main activity on September</span>
+              <span class="st">&quot;PL210J&quot;</span>, <span class="co"># Main activity on October</span>
+              <span class="st">&quot;PL210K&quot;</span>, <span class="co"># Main activity on November</span>
+              <span class="st">&quot;PL210L&quot;</span>  <span class="co"># Main activity on December</span>
+              )
+
+var.list2 &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;PER_ID_Y&quot;</span>, <span class="co"># unique year, cntry, personal ID</span>
+              <span class="st">&quot;PER_ID&quot;</span>, <span class="co"># unique cntry, personal ID</span>
+              <span class="st">&quot;RB010&quot;</span>,  <span class="co"># year</span>
+              <span class="st">&quot;RB020&quot;</span>,  <span class="co"># cntry</span>
+              <span class="st">&quot;RB030&quot;</span>,  <span class="co"># Personal ID</span>
+              <span class="st">&quot;RB040&quot;</span>,  <span class="co"># Current Household ID</span>
+              <span class="st">&quot;RB060&quot;</span>,  <span class="co"># Personal base weight</span>
+              <span class="st">&quot;RB080&quot;</span>,  <span class="co"># Year of birth</span>
+              <span class="st">&quot;RB090&quot;</span>,  <span class="co"># Sex</span>
+              <span class="st">&quot;RB110&quot;</span>,  <span class="co"># Membership status</span>
+              <span class="st">&quot;RB210&quot;</span>,  <span class="co"># Basic activity status</span>
+              <span class="st">&quot;RB230&quot;</span>,  <span class="co"># Mother ID</span>
+              <span class="st">&quot;RX010&quot;</span>,  <span class="co"># Age at the date of the interview</span>
+              <span class="st">&quot;RX020&quot;</span>,  <span class="co"># Age at the end of the income reference period</span>
+              <span class="co"># ----------- from personal data ----------------------</span>
+              <span class="st">&quot;PB190&quot;</span>,  <span class="co"># Marital status</span>
+              <span class="st">&quot;PB200&quot;</span>,  <span class="co"># Consensual union</span>
+              <span class="st">&quot;PY140G&quot;</span>, <span class="co"># Education-related allowances(gross)</span>
+              <span class="st">&quot;PL030&quot;</span>,  <span class="co"># Self-defined current economic status</span>
+              <span class="co">#&quot;PL031&quot;,  # Self-defined current economic status</span>
+              <span class="st">&quot;PL040&quot;</span>,  <span class="co"># Status in employment</span>
+              <span class="st">&quot;PY010N&quot;</span>, <span class="co"># Employee cash or near cash income(gross)</span>
+              <span class="st">&quot;PY010G&quot;</span>, <span class="co"># Employee cash or near cash income(gross)</span>
+              <span class="st">&quot;PY140N&quot;</span>, <span class="co"># Education-related allowances</span>
+              <span class="st">&quot;PY100N&quot;</span>, <span class="co"># Old-age benefits(net)</span>
+              <span class="st">&quot;PL210A&quot;</span>, <span class="co"># Main activity on January</span>
+              <span class="st">&quot;PL210B&quot;</span>, <span class="co"># Main activity on February</span>
+              <span class="st">&quot;PL210C&quot;</span>, <span class="co"># Main activity on March</span>
+              <span class="st">&quot;PL210D&quot;</span>, <span class="co"># Main activity on April</span>
+              <span class="st">&quot;PL210E&quot;</span>, <span class="co"># Main activity on May</span>
+              <span class="st">&quot;PL210F&quot;</span>, <span class="co"># Main activity on June</span>
+              <span class="st">&quot;PL210G&quot;</span>, <span class="co"># Main activity on July</span>
+              <span class="st">&quot;PL210H&quot;</span>, <span class="co"># Main activity on August</span>
+              <span class="st">&quot;PL210I&quot;</span>, <span class="co"># Main activity on September</span>
+              <span class="st">&quot;PL210J&quot;</span>, <span class="co"># Main activity on October</span>
+              <span class="st">&quot;PL210K&quot;</span>, <span class="co"># Main activity on November</span>
+              <span class="st">&quot;PL210L&quot;</span>  <span class="co"># Main activity on December</span>
+              )
+<span class="co"># valitaan maat</span>
+country.list &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;AT&quot;</span>,<span class="st">&quot;BE&quot;</span>,<span class="st">&quot;DK&quot;</span>,<span class="st">&quot;ES&quot;</span>,
+                  <span class="st">&quot;FI&quot;</span>,<span class="st">&quot;FR&quot;</span>,<span class="st">&quot;HU&quot;</span>,<span class="st">&quot;IE&quot;</span>,<span class="st">&quot;IS&quot;</span>,
+                  <span class="st">&quot;IT&quot;</span>,<span class="st">&quot;LU&quot;</span>,<span class="st">&quot;NL&quot;</span>,<span class="st">&quot;NO&quot;</span>,<span class="st">&quot;PT&quot;</span>,
+                  <span class="st">&quot;SE&quot;</span>,<span class="st">&quot;UK&quot;</span>)
+<span class="kw">library</span>(r.eusilc)
+per_longi_2008 &lt;-<span class="st"> </span><span class="kw">merge_longi_personal</span>(<span class="dt">origin.path=</span><span class="st">&quot;~/data/eu_silc/2008/longi_rev3&quot;</span>,
+                                       <span class="dt">destination.path=</span><span class="st">&quot;~/data/eu_silc/demo/2008&quot;</span>,
+                                       <span class="dt">format=</span><span class="st">&quot;csv&quot;</span>,
+                                       <span class="dt">data.table=</span><span class="ot">TRUE</span>,
+                                       <span class="dt">subset.vars=</span>var.list2,
+                                       <span class="dt">subset.countries=</span>country.list)
+per_longi_2009 &lt;-<span class="st"> </span><span class="kw">merge_longi_personal</span>(<span class="dt">origin.path=</span><span class="st">&quot;~/data/eu_silc/2009/longi_rev3&quot;</span>,
+                                       <span class="dt">destination.path=</span><span class="st">&quot;~/data/eu_silc/demo/2009&quot;</span>,
+                                       <span class="dt">format=</span><span class="st">&quot;csv&quot;</span>,
+                                       <span class="dt">data.table=</span><span class="ot">TRUE</span>,
+                                       <span class="dt">subset.vars=</span>var.list1,
+                                       <span class="dt">subset.countries=</span>country.list)
+per_longi_2010 &lt;-<span class="st"> </span><span class="kw">merge_longi_personal</span>(<span class="dt">origin.path=</span><span class="st">&quot;~/data/eu_silc/2010/longi_rev2&quot;</span>,
+                                       <span class="dt">destination.path=</span><span class="st">&quot;~/data/eu_silc/demo/2010&quot;</span>,
+                                       <span class="dt">format=</span><span class="st">&quot;RData&quot;</span>,
+                                       <span class="dt">data.table=</span>csv,
+                                       <span class="dt">subset.vars=</span>var.list1,
+                                       <span class="dt">subset.countries=</span>country.list)</code></pre>
+<pre><code>## Error: object &#39;csv&#39; not found</code></pre>
+<h2 id="eri-vuosien-datojen-yhdistäminen"><span class="header-section-number">2.2</span> Eri vuosien datojen yhdistäminen</h2>
+<p>Mikäli</p>
+<h3 id="helppo-esimerkki"><span class="header-section-number">2.2.1</span> Helppo esimerkki</h3>
+<pre class="sourceCode r"><code class="sourceCode r">var.list &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;PER_ID_Y&quot;</span>, <span class="co"># unique year, cntry, personal ID</span>
+              <span class="st">&quot;RB010&quot;</span>,  <span class="co"># year</span>
+              <span class="st">&quot;RB020&quot;</span> <span class="co"># country</span>
+              )
+
+dat &lt;-<span class="st"> </span><span class="kw">rbind</span>(per_longi_2008[,var.list],
+             per_longi_2009[,var.list],
+             per_longi_2010[,var.list])
+
+<span class="co"># merge the panels datas</span>
+dat$dup &lt;-<span class="st"> </span><span class="kw">duplicated</span>(dat$PER_ID_Y)
+dat.uniq &lt;-<span class="st"> </span>dat[dat$dup ==<span class="st"> </span><span class="ot">FALSE</span>,]
+dat.uniq$dup &lt;-<span class="st"> </span><span class="ot">NULL</span>
+dat.per &lt;-<span class="st"> </span>dat.uniq</code></pre>
+<h3 id="monimutkaisempi-esimerkki"><span class="header-section-number">2.2.2</span> Monimutkaisempi esimerkki</h3>
+<pre class="sourceCode r"><code class="sourceCode r">
+<span class="co"># load(&quot;~/data/eu_silc/demo/2008/per_merge_longi.RData&quot;)</span>
+<span class="co"># load(&quot;~/data/eu_silc/demo/2009/per_merge_longi.RData&quot;)</span>
+<span class="co"># load(&quot;~/data/eu_silc/demo/2010/per_merge_longi.RData&quot;)</span>
+
+<span class="co"># A joint variable of var (PL030/PL031&quot;,  # Self-defined current economic status)</span>
+<span class="co"># have to constructed before subsetting the data</span>
+<span class="co">#</span>
+<span class="co"># let&#39;s code var econStatus by taking the PL031 as a bechmark</span>
+<span class="co"># before making any corrections let&#39;s recode var PL030 using </span>
+<span class="co"># PL031 classes into var PL030rec</span>
+<span class="co"># 2008</span>
+per_longi_2008$PL030rec[per_longi_2008$PL030 ==<span class="st"> </span><span class="dv">1</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+per_longi_2008$PL030rec[per_longi_2008$PL030 ==<span class="st"> </span><span class="dv">2</span>] &lt;-<span class="st"> </span><span class="dv">2</span>
+per_longi_2008$PL030rec[per_longi_2008$PL030 ==<span class="st"> </span><span class="dv">3</span>] &lt;-<span class="st"> </span><span class="dv">5</span>
+per_longi_2008$PL030rec[per_longi_2008$PL030 ==<span class="st"> </span><span class="dv">4</span>] &lt;-<span class="st"> </span><span class="dv">6</span>
+per_longi_2008$PL030rec[per_longi_2008$PL030 ==<span class="st"> </span><span class="dv">5</span>] &lt;-<span class="st"> </span><span class="dv">7</span>
+per_longi_2008$PL030rec[per_longi_2008$PL030 ==<span class="st"> </span><span class="dv">6</span>] &lt;-<span class="st"> </span><span class="dv">8</span>
+per_longi_2008$PL030rec[per_longi_2008$PL030 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">9</span>
+per_longi_2008$PL030rec[per_longi_2008$PL030 ==<span class="st"> </span><span class="dv">8</span>] &lt;-<span class="st"> </span><span class="dv">10</span>
+per_longi_2008$PL030rec[per_longi_2008$PL030 ==<span class="st"> </span><span class="dv">9</span>] &lt;-<span class="st"> </span><span class="dv">11</span>
+<span class="co"># 2009</span>
+per_longi_2009$PL030rec[per_longi_2009$PL030 ==<span class="st"> </span><span class="dv">1</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+per_longi_2009$PL030rec[per_longi_2009$PL030 ==<span class="st"> </span><span class="dv">2</span>] &lt;-<span class="st"> </span><span class="dv">2</span>
+per_longi_2009$PL030rec[per_longi_2009$PL030 ==<span class="st"> </span><span class="dv">3</span>] &lt;-<span class="st"> </span><span class="dv">5</span>
+per_longi_2009$PL030rec[per_longi_2009$PL030 ==<span class="st"> </span><span class="dv">4</span>] &lt;-<span class="st"> </span><span class="dv">6</span>
+per_longi_2009$PL030rec[per_longi_2009$PL030 ==<span class="st"> </span><span class="dv">5</span>] &lt;-<span class="st"> </span><span class="dv">7</span>
+per_longi_2009$PL030rec[per_longi_2009$PL030 ==<span class="st"> </span><span class="dv">6</span>] &lt;-<span class="st"> </span><span class="dv">8</span>
+per_longi_2009$PL030rec[per_longi_2009$PL030 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">9</span>
+per_longi_2009$PL030rec[per_longi_2009$PL030 ==<span class="st"> </span><span class="dv">8</span>] &lt;-<span class="st"> </span><span class="dv">10</span>
+per_longi_2009$PL030rec[per_longi_2009$PL030 ==<span class="st"> </span><span class="dv">9</span>] &lt;-<span class="st"> </span><span class="dv">11</span>
+<span class="co"># 2010</span>
+per_longi_2010$PL030rec[per_longi_2010$PL030 ==<span class="st"> </span><span class="dv">1</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+per_longi_2010$PL030rec[per_longi_2010$PL030 ==<span class="st"> </span><span class="dv">2</span>] &lt;-<span class="st"> </span><span class="dv">2</span>
+per_longi_2010$PL030rec[per_longi_2010$PL030 ==<span class="st"> </span><span class="dv">3</span>] &lt;-<span class="st"> </span><span class="dv">5</span>
+per_longi_2010$PL030rec[per_longi_2010$PL030 ==<span class="st"> </span><span class="dv">4</span>] &lt;-<span class="st"> </span><span class="dv">6</span>
+per_longi_2010$PL030rec[per_longi_2010$PL030 ==<span class="st"> </span><span class="dv">5</span>] &lt;-<span class="st"> </span><span class="dv">7</span>
+per_longi_2010$PL030rec[per_longi_2010$PL030 ==<span class="st"> </span><span class="dv">6</span>] &lt;-<span class="st"> </span><span class="dv">8</span>
+per_longi_2010$PL030rec[per_longi_2010$PL030 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">9</span>
+per_longi_2010$PL030rec[per_longi_2010$PL030 ==<span class="st"> </span><span class="dv">8</span>] &lt;-<span class="st"> </span><span class="dv">10</span>
+per_longi_2010$PL030rec[per_longi_2010$PL030 ==<span class="st"> </span><span class="dv">9</span>] &lt;-<span class="st"> </span><span class="dv">11</span>
+
+<span class="co"># then we have to fill in missing values in PL031 with</span>
+<span class="co"># values in PL030rec</span>
+<span class="co"># let&#39;s create a PL031 with only NA values</span>
+per_longi_2008$PL031 &lt;-<span class="st"> </span><span class="ot">NA</span>
+
+per_longi_2008$econStatus &lt;-<span class="st"> </span><span class="kw">ifelse</span>(<span class="kw">is.na</span>(per_longi_2008$PL031),  
+                                    per_longi_2008$PL030rec, per_longi_2008$PL031)
+per_longi_2009$econStatus &lt;-<span class="st"> </span><span class="kw">ifelse</span>(<span class="kw">is.na</span>(per_longi_2009$PL031),  
+                                    per_longi_2009$PL030rec, per_longi_2009$PL031)
+per_longi_2010$econStatus &lt;-<span class="st"> </span><span class="kw">ifelse</span>(<span class="kw">is.na</span>(per_longi_2010$PL031),  
+                                    per_longi_2010$PL030rec, per_longi_2010$PL031)
+
+<span class="co"># list of variables to be analysed</span>
+var.list &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;PER_ID_Y&quot;</span>, <span class="co"># unique year, cntry, personal ID</span>
+              <span class="st">&quot;PER_ID&quot;</span>, <span class="co"># unique cntry, personal ID</span>
+              <span class="st">&quot;RB010&quot;</span>,  <span class="co"># year</span>
+              <span class="st">&quot;RB020&quot;</span>,  <span class="co"># cntry</span>
+              <span class="st">&quot;RB030&quot;</span>,  <span class="co"># Personal ID</span>
+              <span class="st">&quot;RB040&quot;</span>,  <span class="co"># Current Household ID</span>
+              <span class="st">&quot;RB060&quot;</span>,  <span class="co"># Personal base weight</span>
+              <span class="st">&quot;RB080&quot;</span>,  <span class="co"># Year of birth</span>
+              <span class="st">&quot;RB090&quot;</span>,  <span class="co"># Sex</span>
+              <span class="st">&quot;RB110&quot;</span>,  <span class="co"># Membership status</span>
+              <span class="st">&quot;RB210&quot;</span>,  <span class="co"># Basic activity status</span>
+              <span class="st">&quot;RB230&quot;</span>,  <span class="co"># Mother ID</span>
+              <span class="st">&quot;RX010&quot;</span>,  <span class="co"># Age at the date of the interview</span>
+              <span class="st">&quot;RX020&quot;</span>,  <span class="co"># Age at the end of the income reference period</span>
+              <span class="co"># ----------- from personal data ----------------------</span>
+              <span class="st">&quot;PB190&quot;</span>,  <span class="co"># Marital status</span>
+              <span class="st">&quot;PB200&quot;</span>,  <span class="co"># Consensual union</span>
+              <span class="st">&quot;econStatus&quot;</span>,  <span class="co"># Self-defined current economic status</span>
+              <span class="st">&quot;PY140G&quot;</span>, <span class="co"># Education-related allowances(gross)</span>
+              <span class="st">&quot;PL040&quot;</span>,  <span class="co"># Status in employment</span>
+              <span class="st">&quot;PY010N&quot;</span>, <span class="co"># Employee cash or near cash income(gross)</span>
+              <span class="st">&quot;PY010G&quot;</span>, <span class="co"># Employee cash or near cash income(gross)</span>
+              <span class="st">&quot;PY140N&quot;</span>, <span class="co"># Education-related allowances</span>
+              <span class="st">&quot;PY100N&quot;</span>, <span class="co"># Old-age benefits(net)</span>
+              <span class="st">&quot;PL210A&quot;</span>, <span class="co"># Main activity on January</span>
+              <span class="st">&quot;PL210B&quot;</span>, <span class="co"># Main activity on February</span>
+              <span class="st">&quot;PL210C&quot;</span>, <span class="co"># Main activity on March</span>
+              <span class="st">&quot;PL210D&quot;</span>, <span class="co"># Main activity on April</span>
+              <span class="st">&quot;PL210E&quot;</span>, <span class="co"># Main activity on May</span>
+              <span class="st">&quot;PL210F&quot;</span>, <span class="co"># Main activity on June</span>
+              <span class="st">&quot;PL210G&quot;</span>, <span class="co"># Main activity on July</span>
+              <span class="st">&quot;PL210H&quot;</span>, <span class="co"># Main activity on August</span>
+              <span class="st">&quot;PL210I&quot;</span>, <span class="co"># Main activity on September</span>
+              <span class="st">&quot;PL210J&quot;</span>, <span class="co"># Main activity on October</span>
+              <span class="st">&quot;PL210K&quot;</span>, <span class="co"># Main activity on November</span>
+              <span class="st">&quot;PL210L&quot;</span>  <span class="co"># Main activity on December</span>
+)
+
+dat &lt;-<span class="st"> </span><span class="kw">rbind</span>(per_longi_2008[,var.list],
+             per_longi_2009[,var.list],
+             per_longi_2010[,var.list])
+
+<span class="co"># merge the panels datas</span>
+dat$dup &lt;-<span class="st"> </span><span class="kw">duplicated</span>(dat$PER_ID_Y)
+dat.uniq &lt;-<span class="st"> </span>dat[dat$dup ==<span class="st"> </span><span class="ot">FALSE</span>,]
+dat.uniq$dup &lt;-<span class="st"> </span><span class="ot">NULL</span>
+dat.per &lt;-<span class="st"> </span>dat.uniq
+dat.per$RB030 &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(dat.per$RB030)</code></pre>
+<h3 id="analyysejä"><span class="header-section-number">2.2.3</span> Analyysejä</h3>
+<pre class="sourceCode r"><code class="sourceCode r">tbl &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">round</span>(<span class="kw">prop.table</span>(<span class="kw">table</span>(dat.per$RB010,dat.per$RB020,dat.per$econStatus),<span class="dv">2</span>),<span class="dv">4</span>)*<span class="dv">100</span>)
+<span class="kw">library</span>(ggplot2)
+<span class="kw">ggplot</span>(tbl, <span class="kw">aes</span>(<span class="dt">x=</span>Var1,<span class="dt">y=</span>Freq,<span class="dt">fill=</span>Var2)) +
+<span class="st">  </span><span class="kw">geom_bar</span>(<span class="dt">stat=</span><span class="st">&quot;identity&quot;</span>)</code></pre>
+<div class="figure">
+<img src="figure/plot1.png" alt="plot of chunk plot1" /><p class="caption">plot of chunk plot1</p>
+</div>
+<h1 id="tiettyjen-tapahtumien-eristäminen-ja-diskreetin-datan-luominen"><span class="header-section-number">3</span> Tiettyjen tapahtumien eristäminen ja diskreetin datan luominen</h1>
+<h2 id="case-entry-to-pension"><span class="header-section-number">3.1</span> Case: Entry to pension</h2>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(reshape2)
+dat.per$RB010X &lt;-<span class="st"> </span><span class="kw">factor</span>(<span class="kw">paste</span>(<span class="st">&quot;x&quot;</span>,dat.per$RB010,<span class="dt">sep=</span><span class="st">&quot;&quot;</span>))
+df.wide &lt;-<span class="st"> </span><span class="kw">dcast</span>(dat.per, PER_ID +<span class="st"> </span>RB020 +<span class="st"> </span>RB030 +<span class="st"> </span>
+<span class="st">                  </span><span class="co">#HX100 + HX090 +</span>
+<span class="st">                  </span>PY010G ~<span class="st"> </span>RB010X, 
+                 <span class="dt">value.var =</span> <span class="st">&quot;econStatus&quot;</span>)
+<span class="co"># Transitions per year</span>
+df.wide$pension06[df.wide$x2005 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2006 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+df.wide$pension06[<span class="kw">is.na</span>(df.wide$pension06)] &lt;-<span class="st"> </span><span class="dv">0</span>
+df.wide$pension07[df.wide$x2006 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2007 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+df.wide$pension07[<span class="kw">is.na</span>(df.wide$pension07)] &lt;-<span class="st"> </span><span class="dv">0</span>
+df.wide$pension08[df.wide$x2007 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2008 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+df.wide$pension08[<span class="kw">is.na</span>(df.wide$pension08)] &lt;-<span class="st"> </span><span class="dv">0</span>
+df.wide$pension09[df.wide$x2008 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2009 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+df.wide$pension09[<span class="kw">is.na</span>(df.wide$pension09)] &lt;-<span class="st"> </span><span class="dv">0</span>
+df.wide$pension10[df.wide$x2009 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2010 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+df.wide$pension10[<span class="kw">is.na</span>(df.wide$pension10)] &lt;-<span class="st"> </span><span class="dv">0</span>
+<span class="co"># duplicates?</span>
+df.wide$dup &lt;-<span class="st"> </span><span class="kw">duplicated</span>(df.wide$PER_ID)
+dat.uniq &lt;-<span class="st"> </span>df.wide[df.wide$dup ==<span class="st"> </span><span class="ot">FALSE</span>,]
+dat.uniq$dup &lt;-<span class="st"> </span><span class="ot">NULL</span>
+df.wide &lt;-<span class="st"> </span>dat.uniq
+
+df.long &lt;-<span class="st"> </span><span class="kw">melt</span>(df.wide, <span class="dt">id.vars =</span><span class="kw">c</span>(<span class="st">&quot;PER_ID&quot;</span>,<span class="st">&quot;RB020&quot;</span>,<span class="st">&quot;RB030&quot;</span>,
+                                    <span class="co">#&quot;HX100&quot;,&quot;HX090&quot;,</span>
+                                    <span class="st">&quot;PY010G&quot;</span>),
+                <span class="dt">measure.vars=</span><span class="kw">c</span>(<span class="st">&quot;pension06&quot;</span>,<span class="st">&quot;pension07&quot;</span>,
+                               <span class="st">&quot;pension08&quot;</span>,<span class="st">&quot;pension09&quot;</span>,
+                               <span class="st">&quot;pension10&quot;</span>))
+<span class="kw">names</span>(df.long) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;PER_ID&quot;</span>,<span class="st">&quot;RB020&quot;</span>,<span class="st">&quot;RB030&quot;</span>,<span class="co">#&quot;HX100&quot;,&quot;HX090&quot;,</span>
+                    <span class="st">&quot;PY010G_Z&quot;</span>,
+                    <span class="st">&quot;year&quot;</span>,<span class="st">&quot;pensionEnter&quot;</span>)
+
+df.long$year &lt;-<span class="st"> </span><span class="kw">as.character</span>(df.long$year)
+
+df.long$year[df.long$year ==<span class="st"> &quot;pension06&quot;</span>] &lt;-<span class="st"> &quot;2006&quot;</span>
+df.long$year[df.long$year ==<span class="st"> &quot;pension07&quot;</span>] &lt;-<span class="st"> &quot;2007&quot;</span>
+df.long$year[df.long$year ==<span class="st"> &quot;pension08&quot;</span>] &lt;-<span class="st"> &quot;2008&quot;</span>
+df.long$year[df.long$year ==<span class="st"> &quot;pension09&quot;</span>] &lt;-<span class="st"> &quot;2009&quot;</span>
+df.long$year[df.long$year ==<span class="st"> &quot;pension10&quot;</span>] &lt;-<span class="st"> &quot;2010&quot;</span>
+
+
+df.long$year &lt;-<span class="st"> </span><span class="kw">factor</span>(df.long$year)
+df.long$year &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(<span class="kw">levels</span>(df.long$year))[df.long$year]
+
+df.longx &lt;-<span class="st"> </span>df.long[df.long$pensionEnter ==<span class="st"> </span><span class="dv">1</span>, ] <span class="co"># all we need are the new pensioners</span>
+
+datEnterPension &lt;-<span class="st"> </span><span class="kw">merge</span>(df.longx[,<span class="kw">c</span>(<span class="st">&quot;RB020&quot;</span>,<span class="st">&quot;RB030&quot;</span>,<span class="st">&quot;year&quot;</span>,<span class="st">&quot;pensionEnter&quot;</span>)],
+                          dat.per, 
+                          <span class="dt">by=</span><span class="kw">c</span>(<span class="st">&quot;RB020&quot;</span>,<span class="st">&quot;RB030&quot;</span>), 
+                          <span class="dt">all.x=</span><span class="ot">TRUE</span>)
+datEnterPension$time &lt;-<span class="st"> </span>datEnterPension$RB010 -<span class="st"> </span>datEnterPension$year
+<span class="kw">save</span>(datEnterPension, <span class="dt">file=</span><span class="st">&quot;data/datEnterPension.RData&quot;</span>)</code></pre>
+<p><strong>Number of events by year &amp; country</strong></p>
+<pre class="sourceCode r"><code class="sourceCode r">datTp &lt;-<span class="st"> </span>datEnterPension[datEnterPension$year==datEnterPension$RB010,]
+tblp &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">table</span>(datTp$RB020,datTp$year))
+
+<span class="kw">library</span>(ggplot2)
+
+<span class="kw">ggplot</span>(<span class="dt">data=</span>tblp, <span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">factor</span>(Var2),<span class="dt">y=</span>Freq,<span class="dt">label=</span>Freq)) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_bar</span>(<span class="dt">stat=</span><span class="st">&quot;identity&quot;</span>,<span class="dt">position=</span><span class="st">&quot;dodge&quot;</span>) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_text</span>(<span class="dt">vjust=</span>-<span class="fl">0.2</span>) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title=</span><span class="st">&quot;Number of individuals entering to pension&quot;</span>) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">facet_wrap</span>(~Var1, <span class="dt">ncol=</span><span class="dv">4</span>)</code></pre>
+<div class="figure">
+<img src="figure/subsetenterpensionhistogram.png" alt="plot of chunk subsetenterpensionhistogram" /><p class="caption">plot of chunk subsetenterpensionhistogram</p>
+</div>
+<p><strong>Distribution of age of individuals by year &amp; country</strong></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)
+<span class="kw">ggplot</span>(<span class="dt">data=</span>datTp, 
+       <span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">factor</span>(RB010),<span class="dt">y=</span>RX010)) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_boxplot</span>() +
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title=</span><span class="st">&quot;Age of retirees&quot;</span>) +
+<span class="st">  </span><span class="kw">facet_wrap</span>(~RB020, <span class="dt">ncol=</span><span class="dv">4</span>)</code></pre>
+<div class="figure">
+<img src="figure/subsetfigpension1.png" alt="plot of chunk subsetfigpension1" /><p class="caption">plot of chunk subsetfigpension1</p>
+</div>
+<p><strong>Distribution of age of individuals by country</strong></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RCurl)
+GHurl &lt;-<span class="st"> </span><span class="kw">getURL</span>(<span class="st">&quot;https://raw.github.com/muuankarski/data/master/europe/eu_cntry.csv&quot;</span>)
+regime &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="dt">text =</span> GHurl)
+
+<span class="kw">library</span>(ggplot2)
+datTp &lt;-<span class="st"> </span><span class="kw">merge</span>(datTp,regime,<span class="dt">by.x=</span><span class="st">&quot;RB020&quot;</span>,<span class="dt">by.y=</span><span class="st">&quot;NUTS_ID&quot;</span>)
+<span class="kw">ggplot</span>(<span class="dt">data=</span>datTp, 
+       <span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">factor</span>(<span class="kw">reorder</span>(RB020, RX010, median, <span class="dt">na.rm=</span><span class="ot">TRUE</span>)),
+           <span class="dt">y=</span>RX010,
+           <span class="dt">fill=</span>regime_en)) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_boxplot</span>() +
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title=</span><span class="st">&quot;Age of retirees&quot;</span>) +
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.position=</span><span class="st">&quot;top&quot;</span>)</code></pre>
+<div class="figure">
+<img src="figure/subsetfigpension2.png" alt="plot of chunk subsetfigpension2" /><p class="caption">plot of chunk subsetfigpension2</p>
+</div>
+<p><strong>Distribution of absolute employee cash income (gross) before and after the event</strong></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)
+<span class="kw">ggplot</span>(<span class="dt">data=</span>datEnterPension, 
+       <span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">factor</span>(time),<span class="dt">y=</span>PY010G)) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_boxplot</span>() +
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title=</span><span class="st">&quot;Distribution of absolute employee cash income (gross) before and after retirement&quot;</span>) +
+<span class="st">  </span><span class="kw">coord_cartesian</span>(<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">50000</span>))</code></pre>
+<div class="figure">
+<img src="figure/subsetpensionplotAbsobox.png" alt="plot of chunk subsetpensionplotAbsobox" /><p class="caption">plot of chunk subsetpensionplotAbsobox</p>
+</div>
+<p><strong>Change in absolute employee cash income (gross) due to event (years before and after)</strong></p>
+<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)
+<span class="kw">ggplot</span>(datEnterPension, <span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">factor</span>(time),<span class="dt">y=</span>PY010G,<span class="dt">group=</span>PER_ID)) +
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">alpha=</span>.<span class="dv">2</span>) +<span class="st"> </span><span class="kw">geom_line</span>(<span class="dt">alpha=</span>.<span class="dv">2</span>) +
+<span class="st">  </span><span class="kw">coord_cartesian</span>(<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">50000</span>)) +
+<span class="st">  </span><span class="kw">facet_wrap</span>(~RB020, <span class="dt">ncol=</span><span class="dv">2</span>) +
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title=</span><span class="st">&quot;Change in absolute Employee cash or near cash income(gross) when retiring&quot;</span>) +
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">angle =</span> <span class="dv">90</span>, <span class="dt">vjust =</span> <span class="fl">0.5</span>)) +
+<span class="st">  </span><span class="kw">geom_vline</span>(<span class="dt">xintercept =</span> <span class="dv">6</span>, <span class="dt">color=</span><span class="st">&quot;orange&quot;</span>, <span class="dt">type=</span><span class="st">&quot;dashed&quot;</span>)</code></pre>
+<div class="figure">
+<img src="figure/subsetpensionplotAbso.png" alt="plot of chunk subsetpensionplotAbso" /><p class="caption">plot of chunk subsetpensionplotAbso</p>
+</div>
+<h1 id="tilastolliset-pitkittäisanalyysit"><span class="header-section-number">4</span> Tilastolliset pitkittäisanalyysit</h1>
+<h1 id="sotkua.."><span class="header-section-number">5</span> Sotkua..</h1>
+<h2 id="household-data"><span class="header-section-number">5.1</span> household data</h2>
+<pre class="sourceCode r"><code class="sourceCode r">
+
+<span class="co"># Load the merged household level panel datasets</span>
+<span class="kw">load</span>(<span class="st">&quot;~/workspace/data/eu_silc/2008/longi_rev3/hh_merge.RData&quot;</span>)
+hh_merge08 &lt;-<span class="st"> </span>hh_merge
+<span class="kw">load</span>(<span class="st">&quot;~/workspace/data/eu_silc/2009/longi_rev3/hh_merge.RData&quot;</span>)
+hh_merge09 &lt;-<span class="st"> </span>hh_merge
+<span class="kw">load</span>(<span class="st">&quot;~/workspace/data/eu_silc/2010/longi_rev2/hh_merge.RData&quot;</span>)
+hh_merge10 &lt;-<span class="st"> </span>hh_merge
+<span class="kw">load</span>(<span class="st">&quot;~/workspace/data/eu_silc/2011/longi_rev0/hh_merge.RData&quot;</span>)
+hh_merge11 &lt;-<span class="st"> </span>hh_merge
+<span class="kw">rm</span>(hh_merge)
+
+
+<span class="co"># list of variables to be analysed</span>
+var.list &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;HH_ID_Y&quot;</span>, <span class="co"># unique year, cntry, personal ID</span>
+              <span class="st">&quot;HH_ID&quot;</span>, <span class="co"># unique cntry, personal ID</span>
+              <span class="st">&quot;DB010&quot;</span>,  <span class="co"># year</span>
+              <span class="st">&quot;DB020&quot;</span>,  <span class="co"># cntry</span>
+              <span class="st">&quot;DB030&quot;</span>,  <span class="co"># household ID</span>
+              <span class="st">&quot;DB110&quot;</span>,  <span class="co"># Household status</span>
+              <span class="st">&quot;HY020&quot;</span>,  <span class="co"># Total disposable income</span>
+              <span class="st">&quot;HX050&quot;</span>,  <span class="co"># Equivivalized household size</span>
+              <span class="st">&quot;HX090&quot;</span>,  <span class="co"># Equivivalized household income</span>
+              <span class="st">&quot;HX100&quot;</span>,  <span class="co"># Income quintiles</span>
+              <span class="st">&quot;HY050N&quot;</span>) <span class="co"># Family/Children related allowances (net)</span>
+
+dat &lt;-<span class="st"> </span><span class="kw">rbind</span>(hh_merge08[,var.list],
+             hh_merge09[,var.list],
+             hh_merge10[,var.list])
+
+dat$dup &lt;-<span class="st"> </span><span class="kw">duplicated</span>(dat$HH_ID)
+dat.uniq &lt;-<span class="st"> </span>dat[dat$dup ==<span class="st"> </span><span class="ot">FALSE</span>,]
+dat.uniq$dup &lt;-<span class="st"> </span><span class="ot">NULL</span>
+dat.hh &lt;-<span class="st"> </span>dat.uniq
+dat.hh &lt;-<span class="st"> </span>dat.hh[!<span class="kw">is.na</span>(dat.hh$HX050), ]
+## Merge some files from household data
+dat.per &lt;-<span class="st"> </span><span class="kw">merge</span>(dat.per,dat.hh, 
+                 <span class="dt">by.x=</span><span class="kw">c</span>(<span class="st">&quot;RB010&quot;</span>,<span class="st">&quot;RB020&quot;</span>,<span class="st">&quot;RB040&quot;</span>),
+                 <span class="dt">by.y=</span><span class="kw">c</span>(<span class="st">&quot;DB010&quot;</span>,<span class="st">&quot;DB020&quot;</span>,<span class="st">&quot;DB030&quot;</span>),
+                 <span class="dt">all.x=</span><span class="ot">TRUE</span>)
+<span class="kw">save</span>(dat.per, <span class="dt">file=</span><span class="st">&quot;data/dat.per.RData&quot;</span>)</code></pre>
+</body>
+</html>

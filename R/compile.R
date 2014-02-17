@@ -9,7 +9,8 @@ library(knitr)
 knit("index.Rmd")
 system("cp index.md README.md")
 pandoc_md('index')
-
+knit("data_longi.Rmd")
+pandoc_md('data_longi')
 
 
 # render('index.md')

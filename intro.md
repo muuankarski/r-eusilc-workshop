@@ -15,10 +15,10 @@ transition-speed: fast
 </div>
 </div>
 
-Description
+What & why
 ========================================================
 
-Package that does several labour internsive and error prone tasks
+Package that does several labour intensive and error prone tasks
 
 - merges data- and register files both at the
     - personal and
@@ -26,3 +26,33 @@ Package that does several labour internsive and error prone tasks
 - and dies that both for 
     - longitudinal and 
     - cross-sectional files
+
+Requirements
+=================================================
+
+
+
+merge-commands
+=================================================
+
+Simple read of personal files from longitudinal data
+------------------------------------------------
+
+
+```r
+per_long <- merge_longi_personal(origin.path="/media/baikal/Asiakirjat/data/eu_silc/2011/longi_rev0",
+                                 destination.path="~/demo",
+                                 format="RData")
+```
+
+
+Simple read of personal files from cross-sectional data
+------------------------------------------------
+
+
+```r
+hh_cross <- merge_cross_household(origin.path="/media/baikal/Asiakirjat/data/eu_silc/2011/longi_rev0",
+                                 destination.path="~/demo",
+                                 format="RData")
+```
+
