@@ -49,40 +49,40 @@ tämä nimimuutos siksi, että automatiointi on helpompi tehdä. Suosittelen sij
 
 data
 |---eusilc
-|    | --- 2008
-|    |      |-- longi_rev1
+|    |-----2008
+|    |      |---longi_rev1
 |    |      |    |-------- r_file.csv
 |    |      |    |-------- p_file.csv
 |    |      |    |-------- d_file.csv
 |    |      |    |-------- h_file.csv
-|    |      |-- cross_rev2
+|    |      |---cross_rev2
 |    |      |    |-------- r_file.csv
 |    |      |    |-------- p_file.csv
 |    |      |    |-------- d_file.csv
 |    |      |    |-------- h_file.csv
-|    | --- 2009
-|    |      |-- longi_rev0
+|    |-----2009
+|    |      |---longi_rev0
 |    |      |    |-------- r_file.csv
 |    |      |    |-------- p_file.csv
 |    |      |    |-------- d_file.csv
 |    |      |    |-------- h_file.csv
-|    |      |-- cross_rev1
+|    |      |---cross_rev1
 |    |      |    |-------- r_file.csv
 |    |      |    |-------- p_file.csv
 |    |      |    |-------- d_file.csv
 |    |      |    |-------- h_file.csv
-|    | --- merged
-|    |      |-- 2008
+|    |-----merged
+|    |      |---2008
 |    |      |     |----- per_longi.csv
 |    |      |     |----- hh_longi.csv
 |    |      |     |----- hh_cross.csv
 |    |      |     |----- hh_cross.csv
-|    |      |-- 2009
+|    |      |---2009
 |    |      |     |----- per_longi.csv
 |    |      |     |----- hh_longi.csv
 |    |      |     |----- hh_cross.csv
 |    |      |     |----- hh_cross.csv
-|    |      |-- 2010
+|    |      |---2010
 |    |      |     |----- per_longi.csv
 |    |      |     |----- hh_longi.csv
 |    |      |     |----- hh_cross.csv
