@@ -47,30 +47,41 @@ in addition to renaming you should also consider structuring your raw data archi
 ```{r, eval=FALSE}
 
 data
-|---eusilc
+|---eusilc (input)
 |    |-----2008
-|    |      |---longi_rev1
+|    |      |---longi_rev3
 |    |      |    |-------- r_file.csv
 |    |      |    |-------- p_file.csv
 |    |      |    |-------- d_file.csv
 |    |      |    |-------- h_file.csv
-|    |      |---cross_rev2
+|    |      |---cross_rev4
 |    |      |    |-------- r_file.csv
 |    |      |    |-------- p_file.csv
 |    |      |    |-------- d_file.csv
 |    |      |    |-------- h_file.csv
 |    |-----2009
-|    |      |---longi_rev0
+|    |      |---longi_rev2
 |    |      |    |-------- r_file.csv
 |    |      |    |-------- p_file.csv
 |    |      |    |-------- d_file.csv
 |    |      |    |-------- h_file.csv
-|    |      |---cross_rev1
+|    |      |---cross_rev4
 |    |      |    |-------- r_file.csv
 |    |      |    |-------- p_file.csv
 |    |      |    |-------- d_file.csv
 |    |      |    |-------- h_file.csv
-|    |-----demo
+|    |-----2010
+|    |      |---longi_rev1
+|    |      |    |-------- r_file.csv
+|    |      |    |-------- p_file.csv
+|    |      |    |-------- d_file.csv
+|    |      |    |-------- h_file.csv
+|    |      |---cross_rev3
+|    |      |    |-------- r_file.csv
+|    |      |    |-------- p_file.csv
+|    |      |    |-------- d_file.csv
+|    |      |    |-------- h_file.csv
+|    |-----demo (output)
 |    |      |---2008
 |    |      |     |----- per_longi.csv
 |    |      |     |----- hh_longi.csv
@@ -92,14 +103,15 @@ data
 
 Tässä esimerkissä raakadata vuoden 2010 pitkittäisaneistolle ovat muotoa: `~/data/eu_silc/2010/longi_rev1`, jolloin ko. hakemistossa olisi neljä .csv tiedostoa pitkittäisaineisosta vuoden 2010 revision 1.
 
-Raakadatojen (paneeli) yhdistäminen
+Merging raw panel data
 -----------------------------------
 
-Nyt olemme kiinnostuneet vain yksilötason datoista, joten lataamme ensin kaikki 2010 ja aikaisemmin julkaistut yksilötason paneelidatat R:ään sekä tallennamme yhdistellyt data uudeen hakemistoon. Käytämme siinä apuna r.eusilc-pakettia.
+Here we are only interested in individual level events and consequences. So we are reading all panel data personal files from 2008, 2009 and 2010 datasets in R and, we write the merged datasets in local file (folder `demo/year`). [r.eusilc](https://github.com/muuankarski/r.eusilc)-package
 
 **Installing r.eusilc-package**
 
 For installation you need to have **devtools**-package installed with  `install.packages("devtools")`. In Windows you will need [RTools](http://cran.r-project.org/bin/windows/Rtools/index.html) to be installed before installing **devtools**-package.
+
 
 ```{r, eval=FALSE}
 library(devtools)

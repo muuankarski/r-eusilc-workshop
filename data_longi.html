@@ -87,7 +87,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
   
   body {
       margin-left: 240px;
-      max-width:600px; 
+      max-width:750px; 
       border: 0px;
       font-family: Lato, Helvetica, sans-serif;
   }
@@ -400,7 +400,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <ul>
 <li><a href="#idea"><span class="toc-section-number">1</span> Idea</a></li>
 <li><a href="#merging-the-raw-data-files-and-pooling-across-waves"><span class="toc-section-number">2</span> Merging the raw data files and pooling across waves</a><ul>
-<li><a href="#raakadatojen-paneeli-yhdistäminen"><span class="toc-section-number">2.1</span> Raakadatojen (paneeli) yhdistäminen</a></li>
+<li><a href="#merging-raw-panel-data"><span class="toc-section-number">2.1</span> Merging raw panel data</a></li>
 <li><a href="#pooling-data-from-different-waves"><span class="toc-section-number">2.2</span> Pooling data from different waves</a><ul>
 <li><a href="#analyysejä"><span class="toc-section-number">2.2.1</span> Analyysejä</a></li>
 </ul></li>
@@ -414,7 +414,7 @@ code > span.er { color: #ff0000; font-weight: bold; }
 </ul>
 </div>
 <p><code>Last updated</code>:</p>
-<pre><code>## [1] &quot;2014-02-18 08:52:37 EET&quot;</code></pre>
+<pre><code>## [1] &quot;2014-02-18 13:24:53 EET&quot;</code></pre>
 <h1 id="idea"><span class="header-section-number">1</span> Idea</h1>
 <p>The point of this tutorial is to present a simple reproducible example on how longitudinal analysis can be run in R-environment.</p>
 <p>In this document I will focus on three things</p>
@@ -443,30 +443,41 @@ code > span.er { color: #ff0000; font-weight: bold; }
 <p>in addition to renaming you should also consider structuring your raw data archive into something like (this is how my data is oranised for this demo):</p>
 <pre class="sourceCode r"><code class="sourceCode r">
 data
-|---eusilc
+|---<span class="kw">eusilc</span> (input)
 |<span class="st">    </span><span class="er">|</span>-----<span class="dv">2008</span>
-|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>---longi_rev1
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>---longi_rev3
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>r_file.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>p_file.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>d_file.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>h_file.csv
-|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>---cross_rev2
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>---cross_rev4
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>r_file.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>p_file.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>d_file.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>h_file.csv
 |<span class="st">    </span><span class="er">|</span>-----<span class="dv">2009</span>
-|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>---longi_rev0
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>---longi_rev2
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>r_file.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>p_file.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>d_file.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>h_file.csv
-|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>---cross_rev1
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>---cross_rev4
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>r_file.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>p_file.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>d_file.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>h_file.csv
-|<span class="st">    </span><span class="er">|</span>-----demo
+|<span class="st">    </span><span class="er">|</span>-----<span class="dv">2010</span>
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>---longi_rev1
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>r_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>p_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>d_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>h_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>---cross_rev3
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>r_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>p_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>d_file.csv
+|<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">    </span><span class="er">|</span>--------<span class="st"> </span>h_file.csv
+|<span class="st">    </span><span class="er">|</span>-----<span class="kw">demo</span> (output)
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span>---<span class="dv">2008</span>
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>per_longi.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>hh_longi.csv
@@ -483,12 +494,12 @@ data
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>hh_cross.csv
 |<span class="st">    </span><span class="er">|</span><span class="st">      </span><span class="er">|</span><span class="st">     </span><span class="er">|</span>-----<span class="st"> </span>hh_cross.csv</code></pre>
 <p>Tässä esimerkissä raakadata vuoden 2010 pitkittäisaneistolle ovat muotoa: <code>~/data/eu_silc/2010/longi_rev1</code>, jolloin ko. hakemistossa olisi neljä .csv tiedostoa pitkittäisaineisosta vuoden 2010 revision 1.</p>
-<h2 id="raakadatojen-paneeli-yhdistäminen"><span class="header-section-number">2.1</span> Raakadatojen (paneeli) yhdistäminen</h2>
-<p>Nyt olemme kiinnostuneet vain yksilötason datoista, joten lataamme ensin kaikki 2010 ja aikaisemmin julkaistut yksilötason paneelidatat R:ään sekä tallennamme yhdistellyt data uudeen hakemistoon. Käytämme siinä apuna r.eusilc-pakettia.</p>
+<h2 id="merging-raw-panel-data"><span class="header-section-number">2.1</span> Merging raw panel data</h2>
+<p>Here we are only interested in individual level events and consequences. So we are reading all panel data personal files from 2008, 2009 and 2010 datasets in R and, we write the merged datasets in local file (folder <code>demo/year</code>). <a href="https://github.com/muuankarski/r.eusilc">r.eusilc</a>-package</p>
 <p><strong>Installing r.eusilc-package</strong></p>
 <p>For installation you need to have <strong>devtools</strong>-package installed with <code>install.packages(&quot;devtools&quot;)</code>. In Windows you will need <a href="http://cran.r-project.org/bin/windows/Rtools/index.html">RTools</a> to be installed before installing <strong>devtools</strong>-package.</p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(devtools)
-<span class="kw">install_github</span>(<span class="st">&quot;r.eusilc&quot;</span>, <span class="st">&quot;muuankarski&quot;</span>)
+<span class="kw">install_github</span>(<span class="st">&quot;r.eusilc&quot;</span>,<span class="st">&quot;muuankarski&quot;</span>)
 <span class="kw">library</span>(r.eusilc)</code></pre>
 <p><strong>Merging individual level longitudinal datasets</strong></p>
 <p>We are using here only variables from personal register and personal data files. First we are merging the files from three waves 2008,2009 and 2010. Again, each panel data has rows from that year, and from three previous years (few countries have longer panels). Below, we subset a ~35 variables from each data from 16 countries.</p>
@@ -796,189 +807,161 @@ var.list &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st
 
 dat &lt;-<span class="st"> </span><span class="kw">rbind</span>(per_longi_2008[,var.list],
              per_longi_2009[,var.list],
-             per_longi_2010[,var.list])</code></pre>
-<pre><code>## Error: cannot allocate vector of size 8.9 Mb</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">setdiff</span>(<span class="kw">ls</span>(), <span class="st">&quot;dat&quot;</span>))
+             per_longi_2010[,var.list])
+<span class="kw">rm</span>(<span class="dt">list=</span><span class="kw">setdiff</span>(<span class="kw">ls</span>(), <span class="st">&quot;dat&quot;</span>))
 <span class="co"># merge the panels datas</span>
 <span class="co"># you have to remove the duplicated country-year-id combinations</span>
-dat$dup &lt;-<span class="st"> </span><span class="kw">duplicated</span>(dat$PER_ID_Y)</code></pre>
-<pre><code>## Error: object &#39;dat&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">dat.per &lt;-<span class="st"> </span>dat[dat$dup ==<span class="st"> </span><span class="ot">FALSE</span>,]</code></pre>
-<pre><code>## Error: object &#39;dat&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">dat.per$dup &lt;-<span class="st"> </span><span class="ot">NULL</span></code></pre>
-<pre><code>## Error: object &#39;dat.per&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">
+dat$dup &lt;-<span class="st"> </span><span class="kw">duplicated</span>(dat$PER_ID_Y)
+dat.per &lt;-<span class="st"> </span>dat[dat$dup ==<span class="st"> </span><span class="ot">FALSE</span>,]
+dat.per$dup &lt;-<span class="st"> </span><span class="ot">NULL</span>
+
 <span class="co"># because of data.table -package</span>
 dat.per$RB030 &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(dat.per$RB030)</code></pre>
-<pre><code>## Error: object &#39;dat.per&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"></code></pre>
 <h3 id="analyysejä"><span class="header-section-number">2.2.1</span> Analyysejä</h3>
-<pre class="sourceCode r"><code class="sourceCode r">tbl &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">table</span>(dat.per$RB010, dat.per$RB020, dat.per$econStatus))</code></pre>
-<pre><code>## Error: object &#39;dat.per&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(reshape2)
-tbl.w &lt;-<span class="st"> </span><span class="kw">dcast</span>(<span class="dt">data =</span> tbl, Var1 +<span class="st"> </span>Var2 ~<span class="st"> </span>Var3, <span class="dt">value.var =</span> <span class="st">&quot;Freq&quot;</span>)</code></pre>
-<pre><code>## Error: object &#39;tbl&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl.w$sum &lt;-<span class="st"> </span><span class="kw">rowSums</span>(tbl.w[, <span class="dv">3</span>:<span class="dv">13</span>])</code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl.w[, <span class="dv">3</span>] &lt;-<span class="st"> </span>tbl.w[, <span class="dv">3</span>]/tbl.w[, <span class="dv">14</span>] *<span class="st"> </span><span class="dv">100</span></code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl.w[, <span class="dv">4</span>] &lt;-<span class="st"> </span>tbl.w[, <span class="dv">4</span>]/tbl.w[, <span class="dv">14</span>] *<span class="st"> </span><span class="dv">100</span></code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl.w[, <span class="dv">5</span>] &lt;-<span class="st"> </span>tbl.w[, <span class="dv">5</span>]/tbl.w[, <span class="dv">14</span>] *<span class="st"> </span><span class="dv">100</span></code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl.w[, <span class="dv">6</span>] &lt;-<span class="st"> </span>tbl.w[, <span class="dv">6</span>]/tbl.w[, <span class="dv">14</span>] *<span class="st"> </span><span class="dv">100</span></code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl.w[, <span class="dv">7</span>] &lt;-<span class="st"> </span>tbl.w[, <span class="dv">7</span>]/tbl.w[, <span class="dv">14</span>] *<span class="st"> </span><span class="dv">100</span></code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl.w[, <span class="dv">8</span>] &lt;-<span class="st"> </span>tbl.w[, <span class="dv">8</span>]/tbl.w[, <span class="dv">14</span>] *<span class="st"> </span><span class="dv">100</span></code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl.w[, <span class="dv">9</span>] &lt;-<span class="st"> </span>tbl.w[, <span class="dv">9</span>]/tbl.w[, <span class="dv">14</span>] *<span class="st"> </span><span class="dv">100</span></code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl.w[, <span class="dv">10</span>] &lt;-<span class="st"> </span>tbl.w[, <span class="dv">10</span>]/tbl.w[, <span class="dv">14</span>] *<span class="st"> </span><span class="dv">100</span></code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl.w[, <span class="dv">11</span>] &lt;-<span class="st"> </span>tbl.w[, <span class="dv">11</span>]/tbl.w[, <span class="dv">14</span>] *<span class="st"> </span><span class="dv">100</span></code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl.w[, <span class="dv">12</span>] &lt;-<span class="st"> </span>tbl.w[, <span class="dv">12</span>]/tbl.w[, <span class="dv">14</span>] *<span class="st"> </span><span class="dv">100</span></code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl.w[, <span class="dv">13</span>] &lt;-<span class="st"> </span>tbl.w[, <span class="dv">13</span>]/tbl.w[, <span class="dv">14</span>] *<span class="st"> </span><span class="dv">100</span></code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl.w$sum &lt;-<span class="st"> </span><span class="ot">NULL</span></code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tbl &lt;-<span class="st"> </span><span class="kw">melt</span>(tbl.w, <span class="dt">id.vars =</span> <span class="kw">c</span>(<span class="st">&quot;Var1&quot;</span>, <span class="st">&quot;Var2&quot;</span>))</code></pre>
-<pre><code>## Error: object &#39;tbl.w&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">
+<pre class="sourceCode r"><code class="sourceCode r">tbl &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">table</span>(dat.per$RB010,dat.per$RB020,dat.per$econStatus))
+<span class="kw">library</span>(reshape2)
+tbl.w &lt;-<span class="st"> </span><span class="kw">dcast</span>(<span class="dt">data=</span>tbl, Var1 +<span class="st"> </span>Var2 ~<span class="st"> </span>Var3, <span class="dt">value.var=</span><span class="st">&quot;Freq&quot;</span>)
+tbl.w$sum &lt;-<span class="st"> </span><span class="kw">rowSums</span>(tbl.w[,<span class="dv">3</span>:<span class="dv">13</span>])
+tbl.w[,<span class="dv">3</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">3</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">4</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">4</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">5</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">5</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">6</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">6</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">7</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">7</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">8</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">8</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">9</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">9</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">10</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">10</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">11</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">11</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">12</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">12</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w[,<span class="dv">13</span>] &lt;-<span class="st"> </span>tbl.w[,<span class="dv">13</span>]/tbl.w[,<span class="dv">14</span>]*<span class="dv">100</span>
+tbl.w$sum &lt;-<span class="st"> </span><span class="ot">NULL</span>
+tbl &lt;-<span class="st"> </span><span class="kw">melt</span>(tbl.w, <span class="dt">id.vars=</span><span class="kw">c</span>(<span class="st">&quot;Var1&quot;</span>,<span class="st">&quot;Var2&quot;</span>))
+
 <span class="kw">library</span>(ggplot2)
-<span class="kw">ggplot</span>(tbl, <span class="kw">aes</span>(<span class="dt">x =</span> Var1, <span class="dt">y =</span> value, <span class="dt">fill =</span> variable)) +<span class="st"> </span><span class="kw">geom_bar</span>(<span class="dt">stat =</span> <span class="st">&quot;identity&quot;</span>) +<span class="st"> </span>
-<span class="st">    </span><span class="kw">facet_wrap</span>(~Var2)</code></pre>
-<pre><code>## Error: object &#39;tbl&#39; not found</code></pre>
+<span class="kw">ggplot</span>(tbl, <span class="kw">aes</span>(<span class="dt">x=</span>Var1,<span class="dt">y=</span>value,<span class="dt">fill=</span>variable)) +
+<span class="st">  </span><span class="kw">geom_bar</span>(<span class="dt">stat=</span><span class="st">&quot;identity&quot;</span>) +
+<span class="st">  </span><span class="kw">facet_wrap</span>(~Var2)</code></pre>
+<div class="figure">
+<img src="figure/plot1.png" alt="plot of chunk plot1" /><p class="caption">plot of chunk plot1</p>
+</div>
 <h1 id="tiettyjen-tapahtumien-eristäminen-ja-diskreetin-datan-luominen"><span class="header-section-number">3</span> Tiettyjen tapahtumien eristäminen ja diskreetin datan luominen</h1>
 <h2 id="case-entry-to-pension"><span class="header-section-number">3.1</span> Case: Entry to pension</h2>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(reshape2)
-dat.per$RB010X &lt;-<span class="st"> </span><span class="kw">factor</span>(<span class="kw">paste</span>(<span class="st">&quot;x&quot;</span>,dat.per$RB010,<span class="dt">sep=</span><span class="st">&quot;&quot;</span>))</code></pre>
-<pre><code>## Error: object &#39;dat.per&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.wide &lt;-<span class="st"> </span><span class="kw">dcast</span>(dat.per, PER_ID +<span class="st"> </span>RB020 +<span class="st"> </span>RB030 +<span class="st"> </span>
+dat.per$RB010X &lt;-<span class="st"> </span><span class="kw">factor</span>(<span class="kw">paste</span>(<span class="st">&quot;x&quot;</span>,dat.per$RB010,<span class="dt">sep=</span><span class="st">&quot;&quot;</span>))
+df.wide &lt;-<span class="st"> </span><span class="kw">dcast</span>(dat.per, PER_ID +<span class="st"> </span>RB020 +<span class="st"> </span>RB030 +<span class="st"> </span>
 <span class="st">                  </span><span class="co">#HX100 + HX090 +</span>
 <span class="st">                  </span>PY010G ~<span class="st"> </span>RB010X, 
-                 <span class="dt">value.var =</span> <span class="st">&quot;econStatus&quot;</span>)</code></pre>
-<pre><code>## Error: object &#39;dat.per&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># Transitions per year</span>
-df.wide$pension06[df.wide$x2005 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2006 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span></code></pre>
-<pre><code>## Error: object &#39;df.wide&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.wide$pension06[<span class="kw">is.na</span>(df.wide$pension06)] &lt;-<span class="st"> </span><span class="dv">0</span></code></pre>
-<pre><code>## Error: object &#39;df.wide&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.wide$pension07[df.wide$x2006 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2007 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span></code></pre>
-<pre><code>## Error: object &#39;df.wide&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.wide$pension07[<span class="kw">is.na</span>(df.wide$pension07)] &lt;-<span class="st"> </span><span class="dv">0</span></code></pre>
-<pre><code>## Error: object &#39;df.wide&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.wide$pension08[df.wide$x2007 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2008 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span></code></pre>
-<pre><code>## Error: object &#39;df.wide&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.wide$pension08[<span class="kw">is.na</span>(df.wide$pension08)] &lt;-<span class="st"> </span><span class="dv">0</span></code></pre>
-<pre><code>## Error: object &#39;df.wide&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.wide$pension09[df.wide$x2008 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2009 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span></code></pre>
-<pre><code>## Error: object &#39;df.wide&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.wide$pension09[<span class="kw">is.na</span>(df.wide$pension09)] &lt;-<span class="st"> </span><span class="dv">0</span></code></pre>
-<pre><code>## Error: object &#39;df.wide&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.wide$pension10[df.wide$x2009 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2010 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span></code></pre>
-<pre><code>## Error: object &#39;df.wide&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.wide$pension10[<span class="kw">is.na</span>(df.wide$pension10)] &lt;-<span class="st"> </span><span class="dv">0</span></code></pre>
-<pre><code>## Error: object &#39;df.wide&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="co"># duplicates?</span>
-df.wide$dup &lt;-<span class="st"> </span><span class="kw">duplicated</span>(df.wide$PER_ID)</code></pre>
-<pre><code>## Error: object &#39;df.wide&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">dat.uniq &lt;-<span class="st"> </span>df.wide[df.wide$dup ==<span class="st"> </span><span class="ot">FALSE</span>,]</code></pre>
-<pre><code>## Error: object &#39;df.wide&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">dat.uniq$dup &lt;-<span class="st"> </span><span class="ot">NULL</span></code></pre>
-<pre><code>## Error: object &#39;dat.uniq&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.wide &lt;-<span class="st"> </span>dat.uniq</code></pre>
-<pre><code>## Error: object &#39;dat.uniq&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">
+                 <span class="dt">value.var =</span> <span class="st">&quot;econStatus&quot;</span>)
+<span class="co"># Transitions per year</span>
+df.wide$pension06[df.wide$x2005 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2006 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+df.wide$pension06[<span class="kw">is.na</span>(df.wide$pension06)] &lt;-<span class="st"> </span><span class="dv">0</span>
+df.wide$pension07[df.wide$x2006 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2007 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+df.wide$pension07[<span class="kw">is.na</span>(df.wide$pension07)] &lt;-<span class="st"> </span><span class="dv">0</span>
+df.wide$pension08[df.wide$x2007 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2008 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+df.wide$pension08[<span class="kw">is.na</span>(df.wide$pension08)] &lt;-<span class="st"> </span><span class="dv">0</span>
+df.wide$pension09[df.wide$x2008 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2009 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+df.wide$pension09[<span class="kw">is.na</span>(df.wide$pension09)] &lt;-<span class="st"> </span><span class="dv">0</span>
+df.wide$pension10[df.wide$x2009 !=<span class="st"> </span><span class="dv">7</span> &amp;<span class="st"> </span>df.wide$x2010 ==<span class="st"> </span><span class="dv">7</span>] &lt;-<span class="st"> </span><span class="dv">1</span>
+df.wide$pension10[<span class="kw">is.na</span>(df.wide$pension10)] &lt;-<span class="st"> </span><span class="dv">0</span>
+<span class="co"># duplicates?</span>
+df.wide$dup &lt;-<span class="st"> </span><span class="kw">duplicated</span>(df.wide$PER_ID)
+dat.uniq &lt;-<span class="st"> </span>df.wide[df.wide$dup ==<span class="st"> </span><span class="ot">FALSE</span>,]
+dat.uniq$dup &lt;-<span class="st"> </span><span class="ot">NULL</span>
+df.wide &lt;-<span class="st"> </span>dat.uniq
+
 df.long &lt;-<span class="st"> </span><span class="kw">melt</span>(df.wide, <span class="dt">id.vars =</span><span class="kw">c</span>(<span class="st">&quot;PER_ID&quot;</span>,<span class="st">&quot;RB020&quot;</span>,<span class="st">&quot;RB030&quot;</span>,
                                     <span class="co">#&quot;HX100&quot;,&quot;HX090&quot;,</span>
                                     <span class="st">&quot;PY010G&quot;</span>),
                 <span class="dt">measure.vars=</span><span class="kw">c</span>(<span class="st">&quot;pension06&quot;</span>,<span class="st">&quot;pension07&quot;</span>,
                                <span class="st">&quot;pension08&quot;</span>,<span class="st">&quot;pension09&quot;</span>,
-                               <span class="st">&quot;pension10&quot;</span>))</code></pre>
-<pre><code>## Error: object &#39;df.wide&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">names</span>(df.long) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;PER_ID&quot;</span>,<span class="st">&quot;RB020&quot;</span>,<span class="st">&quot;RB030&quot;</span>,<span class="co">#&quot;HX100&quot;,&quot;HX090&quot;,</span>
+                               <span class="st">&quot;pension10&quot;</span>))
+<span class="kw">names</span>(df.long) &lt;-<span class="st"> </span><span class="kw">c</span>(<span class="st">&quot;PER_ID&quot;</span>,<span class="st">&quot;RB020&quot;</span>,<span class="st">&quot;RB030&quot;</span>,<span class="co">#&quot;HX100&quot;,&quot;HX090&quot;,</span>
                     <span class="st">&quot;PY010G_Z&quot;</span>,
-                    <span class="st">&quot;year&quot;</span>,<span class="st">&quot;pensionEnter&quot;</span>)</code></pre>
-<pre><code>## Error: object &#39;df.long&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">
-df.long$year &lt;-<span class="st"> </span><span class="kw">as.character</span>(df.long$year)</code></pre>
-<pre><code>## Error: object &#39;df.long&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">
-df.long$year[df.long$year ==<span class="st"> &quot;pension06&quot;</span>] &lt;-<span class="st"> &quot;2006&quot;</span></code></pre>
-<pre><code>## Error: object &#39;df.long&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.long$year[df.long$year ==<span class="st"> &quot;pension07&quot;</span>] &lt;-<span class="st"> &quot;2007&quot;</span></code></pre>
-<pre><code>## Error: object &#39;df.long&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.long$year[df.long$year ==<span class="st"> &quot;pension08&quot;</span>] &lt;-<span class="st"> &quot;2008&quot;</span></code></pre>
-<pre><code>## Error: object &#39;df.long&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.long$year[df.long$year ==<span class="st"> &quot;pension09&quot;</span>] &lt;-<span class="st"> &quot;2009&quot;</span></code></pre>
-<pre><code>## Error: object &#39;df.long&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.long$year[df.long$year ==<span class="st"> &quot;pension10&quot;</span>] &lt;-<span class="st"> &quot;2010&quot;</span></code></pre>
-<pre><code>## Error: object &#39;df.long&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">
+                    <span class="st">&quot;year&quot;</span>,<span class="st">&quot;pensionEnter&quot;</span>)
 
-df.long$year &lt;-<span class="st"> </span><span class="kw">factor</span>(df.long$year)</code></pre>
-<pre><code>## Error: object &#39;df.long&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">df.long$year &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(<span class="kw">levels</span>(df.long$year))[df.long$year]</code></pre>
-<pre><code>## Error: object &#39;df.long&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">
-df.longx &lt;-<span class="st"> </span>df.long[df.long$pensionEnter ==<span class="st"> </span><span class="dv">1</span>, ] <span class="co"># all we need are the new pensioners</span></code></pre>
-<pre><code>## Error: object &#39;df.long&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">
+df.long$year &lt;-<span class="st"> </span><span class="kw">as.character</span>(df.long$year)
+
+df.long$year[df.long$year ==<span class="st"> &quot;pension06&quot;</span>] &lt;-<span class="st"> &quot;2006&quot;</span>
+df.long$year[df.long$year ==<span class="st"> &quot;pension07&quot;</span>] &lt;-<span class="st"> &quot;2007&quot;</span>
+df.long$year[df.long$year ==<span class="st"> &quot;pension08&quot;</span>] &lt;-<span class="st"> &quot;2008&quot;</span>
+df.long$year[df.long$year ==<span class="st"> &quot;pension09&quot;</span>] &lt;-<span class="st"> &quot;2009&quot;</span>
+df.long$year[df.long$year ==<span class="st"> &quot;pension10&quot;</span>] &lt;-<span class="st"> &quot;2010&quot;</span>
+
+
+df.long$year &lt;-<span class="st"> </span><span class="kw">factor</span>(df.long$year)
+df.long$year &lt;-<span class="st"> </span><span class="kw">as.numeric</span>(<span class="kw">levels</span>(df.long$year))[df.long$year]
+
+df.longx &lt;-<span class="st"> </span>df.long[df.long$pensionEnter ==<span class="st"> </span><span class="dv">1</span>, ] <span class="co"># all we need are the new pensioners</span>
+
 datEnterPension &lt;-<span class="st"> </span><span class="kw">merge</span>(df.longx[,<span class="kw">c</span>(<span class="st">&quot;RB020&quot;</span>,<span class="st">&quot;RB030&quot;</span>,<span class="st">&quot;year&quot;</span>,<span class="st">&quot;pensionEnter&quot;</span>)],
                           dat.per, 
                           <span class="dt">by=</span><span class="kw">c</span>(<span class="st">&quot;RB020&quot;</span>,<span class="st">&quot;RB030&quot;</span>), 
-                          <span class="dt">all.x=</span><span class="ot">TRUE</span>)</code></pre>
-<pre><code>## Error: object &#39;df.longx&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">datEnterPension$time &lt;-<span class="st"> </span>datEnterPension$RB010 -<span class="st"> </span>datEnterPension$year</code></pre>
-<pre><code>## Error: object &#39;datEnterPension&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">save</span>(datEnterPension, <span class="dt">file=</span><span class="st">&quot;data/datEnterPension.RData&quot;</span>)</code></pre>
-<pre><code>## Error: object &#39;datEnterPension&#39; not found</code></pre>
+                          <span class="dt">all.x=</span><span class="ot">TRUE</span>)
+datEnterPension$time &lt;-<span class="st"> </span>datEnterPension$RB010 -<span class="st"> </span>datEnterPension$year
+<span class="kw">save</span>(datEnterPension, <span class="dt">file=</span><span class="st">&quot;data/datEnterPension.RData&quot;</span>)</code></pre>
+<pre><code>## Error: cannot open the connection</code></pre>
 <p><strong>Number of events by year &amp; country</strong></p>
-<pre class="sourceCode r"><code class="sourceCode r">datTp &lt;-<span class="st"> </span>datEnterPension[datEnterPension$year ==<span class="st"> </span>datEnterPension$RB010, ]</code></pre>
-<pre><code>## Error: object &#39;datEnterPension&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">tblp &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">table</span>(datTp$RB020, datTp$year))</code></pre>
-<pre><code>## Error: object &#39;datTp&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r">
+<pre class="sourceCode r"><code class="sourceCode r">datTp &lt;-<span class="st"> </span>datEnterPension[datEnterPension$year==datEnterPension$RB010,]
+tblp &lt;-<span class="st"> </span><span class="kw">as.data.frame</span>(<span class="kw">table</span>(datTp$RB020,datTp$year))
+
 <span class="kw">library</span>(ggplot2)
 
-<span class="kw">ggplot</span>(<span class="dt">data =</span> tblp, <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">factor</span>(Var2), <span class="dt">y =</span> Freq, <span class="dt">label =</span> Freq)) +<span class="st"> </span><span class="kw">geom_bar</span>(<span class="dt">stat =</span> <span class="st">&quot;identity&quot;</span>, 
-    <span class="dt">position =</span> <span class="st">&quot;dodge&quot;</span>) +<span class="st"> </span><span class="kw">geom_text</span>(<span class="dt">vjust =</span> -<span class="fl">0.2</span>) +<span class="st"> </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Number of individuals entering to pension&quot;</span>) +<span class="st"> </span>
-<span class="st">    </span><span class="kw">facet_wrap</span>(~Var1, <span class="dt">ncol =</span> <span class="dv">4</span>)</code></pre>
-<pre><code>## Error: object &#39;tblp&#39; not found</code></pre>
+<span class="kw">ggplot</span>(<span class="dt">data=</span>tblp, <span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">factor</span>(Var2),<span class="dt">y=</span>Freq,<span class="dt">label=</span>Freq)) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_bar</span>(<span class="dt">stat=</span><span class="st">&quot;identity&quot;</span>,<span class="dt">position=</span><span class="st">&quot;dodge&quot;</span>) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_text</span>(<span class="dt">vjust=</span>-<span class="fl">0.2</span>) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title=</span><span class="st">&quot;Number of individuals entering to pension&quot;</span>) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">facet_wrap</span>(~Var1, <span class="dt">ncol=</span><span class="dv">4</span>)</code></pre>
+<div class="figure">
+<img src="figure/subsetenterpensionhistogram.png" alt="plot of chunk subsetenterpensionhistogram" /><p class="caption">plot of chunk subsetenterpensionhistogram</p>
+</div>
 <p><strong>Distribution of age of individuals by year &amp; country</strong></p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)
-<span class="kw">ggplot</span>(<span class="dt">data =</span> datTp, <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">factor</span>(RB010), <span class="dt">y =</span> RX010)) +<span class="st"> </span><span class="kw">geom_boxplot</span>() +<span class="st"> </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Age of retirees&quot;</span>) +<span class="st"> </span>
-<span class="st">    </span><span class="kw">facet_wrap</span>(~RB020, <span class="dt">ncol =</span> <span class="dv">4</span>)</code></pre>
-<pre><code>## Error: object &#39;datTp&#39; not found</code></pre>
+<span class="kw">ggplot</span>(<span class="dt">data=</span>datTp, 
+       <span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">factor</span>(RB010),<span class="dt">y=</span>RX010)) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_boxplot</span>() +
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title=</span><span class="st">&quot;Age of retirees&quot;</span>) +
+<span class="st">  </span><span class="kw">facet_wrap</span>(~RB020, <span class="dt">ncol=</span><span class="dv">4</span>)</code></pre>
+<div class="figure">
+<img src="figure/subsetfigpension1.png" alt="plot of chunk subsetfigpension1" /><p class="caption">plot of chunk subsetfigpension1</p>
+</div>
 <p><strong>Distribution of age of individuals by country</strong></p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(RCurl)
 GHurl &lt;-<span class="st"> </span><span class="kw">getURL</span>(<span class="st">&quot;https://raw.github.com/muuankarski/data/master/europe/eu_cntry.csv&quot;</span>)
 regime &lt;-<span class="st"> </span><span class="kw">read.csv</span>(<span class="dt">text =</span> GHurl)
 
 <span class="kw">library</span>(ggplot2)
-datTp &lt;-<span class="st"> </span><span class="kw">merge</span>(datTp, regime, <span class="dt">by.x =</span> <span class="st">&quot;RB020&quot;</span>, <span class="dt">by.y =</span> <span class="st">&quot;NUTS_ID&quot;</span>)</code></pre>
-<pre><code>## Error: object &#39;datTp&#39; not found</code></pre>
-<pre class="sourceCode r"><code class="sourceCode r"><span class="kw">ggplot</span>(<span class="dt">data =</span> datTp, <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">factor</span>(<span class="kw">reorder</span>(RB020, RX010, median, <span class="dt">na.rm =</span> <span class="ot">TRUE</span>)), 
-    <span class="dt">y =</span> RX010, <span class="dt">fill =</span> regime_en)) +<span class="st"> </span><span class="kw">geom_boxplot</span>() +<span class="st"> </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Age of retirees&quot;</span>) +<span class="st"> </span>
-<span class="st">    </span><span class="kw">theme</span>(<span class="dt">legend.position =</span> <span class="st">&quot;top&quot;</span>)</code></pre>
-<pre><code>## Error: object &#39;datTp&#39; not found</code></pre>
+datTp &lt;-<span class="st"> </span><span class="kw">merge</span>(datTp,regime,<span class="dt">by.x=</span><span class="st">&quot;RB020&quot;</span>,<span class="dt">by.y=</span><span class="st">&quot;NUTS_ID&quot;</span>)
+<span class="kw">ggplot</span>(<span class="dt">data=</span>datTp, 
+       <span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">factor</span>(<span class="kw">reorder</span>(RB020, RX010, median, <span class="dt">na.rm=</span><span class="ot">TRUE</span>)),
+           <span class="dt">y=</span>RX010,
+           <span class="dt">fill=</span>regime_en)) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_boxplot</span>() +
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title=</span><span class="st">&quot;Age of retirees&quot;</span>) +
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">legend.position=</span><span class="st">&quot;top&quot;</span>)</code></pre>
+<div class="figure">
+<img src="figure/subsetfigpension2.png" alt="plot of chunk subsetfigpension2" /><p class="caption">plot of chunk subsetfigpension2</p>
+</div>
 <p><strong>Distribution of absolute employee cash income (gross) before and after the event</strong></p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)
-<span class="kw">ggplot</span>(<span class="dt">data =</span> datEnterPension, <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">factor</span>(time), <span class="dt">y =</span> PY010G)) +<span class="st"> </span><span class="kw">geom_boxplot</span>() +<span class="st"> </span>
-<span class="st">    </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Distribution of absolute employee cash income (gross) before and after retirement&quot;</span>) +<span class="st"> </span>
-<span class="st">    </span><span class="kw">coord_cartesian</span>(<span class="dt">ylim =</span> <span class="kw">c</span>(<span class="dv">0</span>, <span class="dv">50000</span>))</code></pre>
-<pre><code>## Error: object &#39;datEnterPension&#39; not found</code></pre>
+<span class="kw">ggplot</span>(<span class="dt">data=</span>datEnterPension, 
+       <span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">factor</span>(time),<span class="dt">y=</span>PY010G)) +<span class="st"> </span>
+<span class="st">  </span><span class="kw">geom_boxplot</span>() +
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title=</span><span class="st">&quot;Distribution of absolute employee cash income (gross) before and after retirement&quot;</span>) +
+<span class="st">  </span><span class="kw">coord_cartesian</span>(<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">50000</span>))</code></pre>
+<div class="figure">
+<img src="figure/subsetpensionplotAbsobox.png" alt="plot of chunk subsetpensionplotAbsobox" /><p class="caption">plot of chunk subsetpensionplotAbsobox</p>
+</div>
 <p><strong>Change in absolute employee cash income (gross) due to event (years before and after)</strong></p>
 <pre class="sourceCode r"><code class="sourceCode r"><span class="kw">library</span>(ggplot2)
-<span class="kw">ggplot</span>(datEnterPension, <span class="kw">aes</span>(<span class="dt">x =</span> <span class="kw">factor</span>(time), <span class="dt">y =</span> PY010G, <span class="dt">group =</span> PER_ID)) +<span class="st"> </span>
-<span class="st">    </span><span class="kw">geom_point</span>(<span class="dt">alpha =</span> <span class="fl">0.2</span>) +<span class="st"> </span><span class="kw">geom_line</span>(<span class="dt">alpha =</span> <span class="fl">0.2</span>) +<span class="st"> </span><span class="kw">coord_cartesian</span>(<span class="dt">ylim =</span> <span class="kw">c</span>(<span class="dv">0</span>, 
-    <span class="dv">50000</span>)) +<span class="st"> </span><span class="kw">facet_wrap</span>(~RB020, <span class="dt">ncol =</span> <span class="dv">2</span>) +<span class="st"> </span><span class="kw">labs</span>(<span class="dt">title =</span> <span class="st">&quot;Change in absolute Employee cash or near cash income(gross) when retiring&quot;</span>) +<span class="st"> </span>
-<span class="st">    </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">angle =</span> <span class="dv">90</span>, <span class="dt">vjust =</span> <span class="fl">0.5</span>)) +<span class="st"> </span><span class="kw">geom_vline</span>(<span class="dt">xintercept =</span> <span class="dv">6</span>, 
-    <span class="dt">color =</span> <span class="st">&quot;orange&quot;</span>, <span class="dt">type =</span> <span class="st">&quot;dashed&quot;</span>)</code></pre>
-<pre><code>## Error: object &#39;datEnterPension&#39; not found</code></pre>
+<span class="kw">ggplot</span>(datEnterPension, <span class="kw">aes</span>(<span class="dt">x=</span><span class="kw">factor</span>(time),<span class="dt">y=</span>PY010G,<span class="dt">group=</span>PER_ID)) +
+<span class="st">  </span><span class="kw">geom_point</span>(<span class="dt">alpha=</span>.<span class="dv">2</span>) +<span class="st"> </span><span class="kw">geom_line</span>(<span class="dt">alpha=</span>.<span class="dv">2</span>) +
+<span class="st">  </span><span class="kw">coord_cartesian</span>(<span class="dt">ylim=</span><span class="kw">c</span>(<span class="dv">0</span>,<span class="dv">50000</span>)) +
+<span class="st">  </span><span class="kw">facet_wrap</span>(~RB020, <span class="dt">ncol=</span><span class="dv">2</span>) +
+<span class="st">  </span><span class="kw">labs</span>(<span class="dt">title=</span><span class="st">&quot;Change in absolute Employee cash or near cash income(gross) when retiring&quot;</span>) +
+<span class="st">  </span><span class="kw">theme</span>(<span class="dt">axis.text.x =</span> <span class="kw">element_text</span>(<span class="dt">angle =</span> <span class="dv">90</span>, <span class="dt">vjust =</span> <span class="fl">0.5</span>)) +
+<span class="st">  </span><span class="kw">geom_vline</span>(<span class="dt">xintercept =</span> <span class="dv">6</span>, <span class="dt">color=</span><span class="st">&quot;orange&quot;</span>, <span class="dt">type=</span><span class="st">&quot;dashed&quot;</span>)</code></pre>
+<div class="figure">
+<img src="figure/subsetpensionplotAbso.png" alt="plot of chunk subsetpensionplotAbso" /><p class="caption">plot of chunk subsetpensionplotAbso</p>
+</div>
 <h1 id="statistical-analysis"><span class="header-section-number">4</span> Statistical analysis</h1>
 <h2 id="section"><span class="header-section-number">4.1</span> ———–</h2>
 <p><strong>Some mess here</strong></p>
