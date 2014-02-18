@@ -1,49 +1,50 @@
 ---
 title: Poolatun Pitkittäisaineiston rakentaminen EU-silc datasta
 author: Markus Kainu
-date: Feb 17, 2014
+date: 
 ---
 
 
-Ajatus
+`Last updated`:
+
+```
+## [1] "2014-02-18 08:52:37 EET"
+```
+
+
+
+Idea
 ===============================
 
-Pitkittäiaineiston rakentamisen sekä pitkittäisanalyysien tekeminen jaetaan tässä kolmeen vaiheeseen:
+The point of this tutorial is to present a simple reproducible example on how longitudinal analysis can be run in R-environment.
 
-1. raakadatojen yhdistäminen ja poolaaminen eri vuosilta
-2. tiettyjen tapahtumien eristäminen ja diskreetin datan luominen
-3. tilastolliset pitkittäisanalyysit
+In this document I will focus on three things 
 
-Ensimmäisen vaiheen raakadatojen yhdistäminen on automatisoitu [r.eusilc](https://github.com/muuankarski/r.eusilc)-paketiksi. Datojen poolaaminen vaati jo käsityötä, sillä eri vuosien datat eroavat toisistaan muuttujien osalta.
+1. merging the raw .csv longitudinal files and pooling across waves
+2. creating a descrete time dataset for further longitudinal analysis
+3. running simple survival analysis on that data
 
-Toinen vaihe on työläin ja riippuu paljon tapahtumasta, jota tarkastellaan. Mä kirjoittaisin tätä maanantaina valmiiksi jos Henna voit kertoa tarkemmin mistä tapahtumasta on kyse ja millä muuttuj(a/i)lla olet sitä aikonut tutkia. Sekä taustamuuttujat ja vastemuuttujat kiinnostaisi. Kirjoittaisin nämä skriptit + dokumentaation mahdollisimman pitkälle, jotta voitaisiin tiistaina käyttään enemmän aikaa siihen miksi näin tehdään kuin siihen mitä tehdään.
+In this playful demo I'm interested in retirement. But, first let's take a look at the mering the raw data.
 
-Teen kaiken vaan R:llä koska osaan sen ja koska R-komentoja on mahdollista ajaa suoraan SPSS:stä (tuore ohje 2013 lokakuulta: http://www.ibm.com/developerworks/library/ba-call-r-spss/) tai upottaa Statan ja SAS:in työvirtoihin.
-
-Kolmanteen vaiheeseen mua kiinnostaa se, mitä pitkittäisanalyysejä olet ajatellut tehdä ja millä ohjelmalla. Mulla on valmiina jotain survival analyysejä and sequence analyysejä, ja voin yrittää soveltaa niitä sun tapaukseen ihan esimerkkinä jos ehdin. 
-
-
-Raakadatojen (paneeli) yhdistäminen ja poolaaminen eri vuosilta 
+Merging the raw data files and pooling across waves
 ===============================
 
-
-Eu-silc datat toimitetaan laser-levyllä, joissa yhdellä levyllä on **yhden vuoden** ja joko *cross-sectional* tai *longitudinal* -versio datasta. .csv-muotoiset data on nimetty tyyliin `UDB_L06D_ver 2006-2 from 01-03-2009`, joka tässä tapauksessa tarkoittaa
+Eu-silc datasets are delivered on a laser disc, where you have on each disc a four .csv files representing one either *cross-sectional* or *longitudinal* version of data. Raw .csv-files are named as `UDB_L06D_ver 2006-2 from 01-03-2009`, that in this case would mean:
 
 - user database
 - longitudinal
 - d-file (household register)
-- vuoden 2006 datan revision 2
-- julkaistu vuonna 2009
+- from year 2006 revision 2
+- published year 2009
 
-Jotta näiden ohjeiden noudattaminen onnistuu, tulee raakadatojen nimiä muuttaa siten, että:
+In order to follow this demo you will have to rename the .csv files following the example below:
 
 - `UDB_L06R_ver 2006-2 from 01-03-2009.csv` =>> `r_file.csv`
 - `UDB_L06P_ver 2006-2 from 01-03-2009.csv` =>> `p_file.csv`
 - `UDB_L06D_ver 2006-2 from 01-03-2009.csv` =>> `d_file.csv`
 - `UDB_L06H_ver 2006-2 from 01-03-2009.csv` =>> `h_file.csv`
 
-tämä nimimuutos siksi, että automatiointi on helpompi tehdä. Suosittelen sijoittamaan raakatiedostot esim. alla olevan tyyppiseen hakemistorakenteeseen:
-
+in addition to renaming you should also consider structuring your raw data archive into something like (this is how my data is oranised for this demo):
 
 
 ```r
@@ -72,7 +73,7 @@ data
 |    |      |    |-------- p_file.csv
 |    |      |    |-------- d_file.csv
 |    |      |    |-------- h_file.csv
-|    |-----merged
+|    |-----demo
 |    |      |---2008
 |    |      |     |----- per_longi.csv
 |    |      |     |----- hh_longi.csv
@@ -92,6 +93,7 @@ data
 ```
 
 
+
 Tässä esimerkissä raakadata vuoden 2010 pitkittäisaneistolle ovat muotoa: `~/data/eu_silc/2010/longi_rev1`, jolloin ko. hakemistossa olisi neljä .csv tiedostoa pitkittäisaineisosta vuoden 2010 revision 1.
 
 Raakadatojen (paneeli) yhdistäminen
@@ -99,24 +101,33 @@ Raakadatojen (paneeli) yhdistäminen
 
 Nyt olemme kiinnostuneet vain yksilötason datoista, joten lataamme ensin kaikki 2010 ja aikaisemmin julkaistut yksilötason paneelidatat R:ään sekä tallennamme yhdistellyt data uudeen hakemistoon. Käytämme siinä apuna r.eusilc-pakettia.
 
-### Paketin asentaminen
+**Installing r.eusilc-package**
+
+For installation you need to have **devtools**-package installed with  `install.packages("devtools")`. In Windows you will need [RTools](http://cran.r-project.org/bin/windows/Rtools/index.html) to be installed before installing **devtools**-package.
 
 
 ```r
 library(devtools)
-install_github("r.eusilc","muuankarski")
+install_github("r.eusilc", "muuankarski")
 library(r.eusilc)
 ```
 
 
-### Yksilötason raakadatojen yhdistäminen
 
-Seuraava rivit lukevat raakadatat, yhdistävät sen ja kirjoittavat .csv-muotoon demo-kansioon. `data.table=TRUE` attribuutti käyttää [data.table](http://cran.r-project.org/web/packages/data.table/index.html)-paketin hieman eksperimentaalia `fread`-funktiota .csv-datojen lukemiseen, joka on huimasti `read.csv`-funktiota nopeampi. `data.table=TRUE` käyttö edellyttää pakettien **data.table** ja **bit64** asennusta.
+**Merging individual level longitudinal datasets**
 
+We are using here only variables from personal register and personal data files. First we are merging the files from three waves 2008,2009 and 2010. Again, each panel data has rows from that year, and from three previous years (few countries have longer panels). Below, we subset a ~35 variables from each data from 16 countries.
+
+The following lines will 1) read the raw data, 2) merge the personal level files and 3) save the ouput in `.csv`-format in `demo/year`-folder.
+
+<!--
+`data.table=TRUE` attribuutti käyttää [data.table](http://cran.r-project.org/web/packages/data.table/index.html)-paketin hieman eksperimentaalia `fread`-funktiota .csv-datojen lukemiseen, joka on huimasti `read.csv`-funktiota nopeampi. `data.table=TRUE` käyttö edellyttää pakettien **data.table** ja **bit64** asennusta. (Suositellaan vain kokeneille käyttäjille)
+-->
 
 
 ```r
-# valitaan muuttujat
+# valitaan muuttujat. var.list1 datas other than 2008. 
+# (2008) does not have variable PL031
 var.list1 <- c("PER_ID_Y", # unique year, cntry, personal ID
               "PER_ID", # unique cntry, personal ID
               "RB010",  # year
@@ -220,52 +231,89 @@ per_longi_2010 <- merge_longi_personal(origin.path="~/data/eu_silc/2010/longi_re
                                        subset.countries=country.list)
 ```
 
-```
-## Error: object 'csv' not found
-```
 
 
-
-Eri vuosien datojen yhdistäminen
+Pooling data from different waves
 ------------------------------------
 
-Mikäli 
+The challenge in pooling the waves is that names or numbers of variables is not same across the waves. In the case of retirement we have work a bit on this. But to be on the clear the logic here is a minimal  example of how to this in the case where your variables of interest have **identical names** and **identical coding scheme** across waves.
 
-
-### Helppo esimerkki
+**Example one: identical variable names across waves**
 
 
 ```r
+# Define variables of interest
 var.list <- c("PER_ID_Y", # unique year, cntry, personal ID
               "RB010",  # year
               "RB020" # country
               )
-
+# subset only those variables from panel waves and rbind them on top of each other
 dat <- rbind(per_longi_2008[,var.list],
              per_longi_2009[,var.list],
              per_longi_2010[,var.list])
 
-# merge the panels datas
+# As there are panel continuing across files 
+# you have to remove the duplicated country-year-id combinations
 dat$dup <- duplicated(dat$PER_ID_Y)
-dat.uniq <- dat[dat$dup == FALSE,]
-dat.uniq$dup <- NULL
-dat.per <- dat.uniq
+dat.per <- dat[dat$dup == FALSE,]
+dat.per$dup <- NULL
 ```
 
 
 
+**A more complicated example with retirement**
+
+Again, I'm interested in **retirement** in this demo and i will use the variable [`PL030/PL031`](http://www.gesis.org/?id=8063#PL030) (*Self-defined current economic status*) as my main source of information on the event (entry to pension from work). As those variables are "complementary"" (individuals have value in either of variable (missing data still substantial problem!!) a synthetic variable `econStatus` has to be created. In the following lines it done following a logic: 
+
+1. a value from PL031 is taken first
+2. if it is missing, the value from PL030 is taken
+3. a output varible `econStatus` is simultaneuosly recoded to match PL031 coding. The results is a variable with values as in the table below.
+
+Table: values and labels in variable PL031 AND in output var `econStatus`
+
+| Value | Label |
+| ----- | ------ |
+| 1 | Employee working full-time |
+| 2 | Employee working part-time |
+| 3 | Self-employed working full-time (including family worker) |
+| 4 | Self-employed working part-time (including family worker) |
+| 5 | Unemployed |
+| 6 | Pupil, student, further training, unpaid work experience |
+| 7 | In retirement or in early retirement or has given up business |
+| 8 | Permanently disabled or/and unfit to work |
+| 9 | In compulsory military community or service |
+| 10 | Fulfilling domestic tasks and care responsibilities |
+| 11 | Other inactive person |
+
+In other words, entry to pension system is coded as change from `econStatus != 7` to `econStatus == 7`.
 
 
-### Monimutkaisempi esimerkki
+```r
+dfX$econStatus <- ifelse(is.na(dfX$PL031), dfX$PL030rec, dfX$PL031)
+```
+
+
+1. merging the original register and data files both at the household and personal level from year 2008, 2009 and 2010 (each containing data from that year and three years before)
+2. subsetting same variables from each datasets 
+    - same set of variables from personal08, personal09 and personal10 datas
+3. combining the datasets with identical variables
+    - one dataset including all the cases from personal files (~4 million cases)
+    - another dataset including all the cases from household files (~2 million cases)
+4. subsetting only cases with unique `year-cntry-id` -combination (longitudinal data files are overlapping)
+5. merging the needed household level variables with personal data
+5. manipulating the dataset so that the year of exit/entry is found plus the required information from years before and after the event
 
 
 
 ```r
 
-# load("~/data/eu_silc/demo/2008/per_merge_longi.RData")
-# load("~/data/eu_silc/demo/2009/per_merge_longi.RData")
-# load("~/data/eu_silc/demo/2010/per_merge_longi.RData")
-
+load("~/data/eu_silc/demo/2008/per_merge_longi.RData")
+per_longi_2008 <- per_merge_longi
+load("~/data/eu_silc/demo/2009/per_merge_longi.RData")
+per_longi_2009 <- per_merge_longi
+load("~/data/eu_silc/demo/2010/per_merge_longi.RData")
+per_longi_2010 <- per_merge_longi
+rm(per_merge_longi)
 # A joint variable of var (PL030/PL031",  # Self-defined current economic status)
 # have to constructed before subsetting the data
 #
@@ -357,13 +405,50 @@ var.list <- c("PER_ID_Y", # unique year, cntry, personal ID
 dat <- rbind(per_longi_2008[,var.list],
              per_longi_2009[,var.list],
              per_longi_2010[,var.list])
+```
 
+```
+## Error: cannot allocate vector of size 8.9 Mb
+```
+
+```r
+rm(list=setdiff(ls(), "dat"))
 # merge the panels datas
+# you have to remove the duplicated country-year-id combinations
 dat$dup <- duplicated(dat$PER_ID_Y)
-dat.uniq <- dat[dat$dup == FALSE,]
-dat.uniq$dup <- NULL
-dat.per <- dat.uniq
+```
+
+```
+## Error: object 'dat' not found
+```
+
+```r
+dat.per <- dat[dat$dup == FALSE,]
+```
+
+```
+## Error: object 'dat' not found
+```
+
+```r
+dat.per$dup <- NULL
+```
+
+```
+## Error: object 'dat.per' not found
+```
+
+```r
+
+# because of data.table -package
 dat.per$RB030 <- as.numeric(dat.per$RB030)
+```
+
+```
+## Error: object 'dat.per' not found
+```
+
+```r
 
 ```
 
@@ -372,31 +457,144 @@ dat.per$RB030 <- as.numeric(dat.per$RB030)
 
 
 ```r
-tbl <- as.data.frame(table(dat.per$RB010,dat.per$RB020,dat.per$econStatus))
-library(reshape2)
-tbl.w <- dcast(data=tbl, Var1 + Var2 ~ Var3, value.var="Freq")
-tbl.w$sum <- rowSums(tbl.w[,3:13])
-tbl.w[,3] <- tbl.w[,3]/tbl.w[,14]*100
-tbl.w[,4] <- tbl.w[,4]/tbl.w[,14]*100
-tbl.w[,5] <- tbl.w[,5]/tbl.w[,14]*100
-tbl.w[,6] <- tbl.w[,6]/tbl.w[,14]*100
-tbl.w[,7] <- tbl.w[,7]/tbl.w[,14]*100
-tbl.w[,8] <- tbl.w[,8]/tbl.w[,14]*100
-tbl.w[,9] <- tbl.w[,9]/tbl.w[,14]*100
-tbl.w[,10] <- tbl.w[,10]/tbl.w[,14]*100
-tbl.w[,11] <- tbl.w[,11]/tbl.w[,14]*100
-tbl.w[,12] <- tbl.w[,12]/tbl.w[,14]*100
-tbl.w[,13] <- tbl.w[,13]/tbl.w[,14]*100
-tbl.w$sum <- NULL
-tbl <- melt(tbl.w, id.vars=c("Var1","Var2"))
-
-library(ggplot2)
-ggplot(tbl, aes(x=Var1,y=value,fill=variable)) +
-  geom_bar(stat="identity") +
-  facet_wrap(~Var2)
+tbl <- as.data.frame(table(dat.per$RB010, dat.per$RB020, dat.per$econStatus))
 ```
 
-![plot of chunk plot1](figure/plot1.png) 
+```
+## Error: object 'dat.per' not found
+```
+
+```r
+library(reshape2)
+tbl.w <- dcast(data = tbl, Var1 + Var2 ~ Var3, value.var = "Freq")
+```
+
+```
+## Error: object 'tbl' not found
+```
+
+```r
+tbl.w$sum <- rowSums(tbl.w[, 3:13])
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+tbl.w[, 3] <- tbl.w[, 3]/tbl.w[, 14] * 100
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+tbl.w[, 4] <- tbl.w[, 4]/tbl.w[, 14] * 100
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+tbl.w[, 5] <- tbl.w[, 5]/tbl.w[, 14] * 100
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+tbl.w[, 6] <- tbl.w[, 6]/tbl.w[, 14] * 100
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+tbl.w[, 7] <- tbl.w[, 7]/tbl.w[, 14] * 100
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+tbl.w[, 8] <- tbl.w[, 8]/tbl.w[, 14] * 100
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+tbl.w[, 9] <- tbl.w[, 9]/tbl.w[, 14] * 100
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+tbl.w[, 10] <- tbl.w[, 10]/tbl.w[, 14] * 100
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+tbl.w[, 11] <- tbl.w[, 11]/tbl.w[, 14] * 100
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+tbl.w[, 12] <- tbl.w[, 12]/tbl.w[, 14] * 100
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+tbl.w[, 13] <- tbl.w[, 13]/tbl.w[, 14] * 100
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+tbl.w$sum <- NULL
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+tbl <- melt(tbl.w, id.vars = c("Var1", "Var2"))
+```
+
+```
+## Error: object 'tbl.w' not found
+```
+
+```r
+
+library(ggplot2)
+ggplot(tbl, aes(x = Var1, y = value, fill = variable)) + geom_bar(stat = "identity") + 
+    facet_wrap(~Var2)
+```
+
+```
+## Error: object 'tbl' not found
+```
 
 
 
@@ -410,26 +608,138 @@ Case: Entry to pension
 ```r
 library(reshape2)
 dat.per$RB010X <- factor(paste("x",dat.per$RB010,sep=""))
+```
+
+```
+## Error: object 'dat.per' not found
+```
+
+```r
 df.wide <- dcast(dat.per, PER_ID + RB020 + RB030 + 
                   #HX100 + HX090 +
                   PY010G ~ RB010X, 
                  value.var = "econStatus")
+```
+
+```
+## Error: object 'dat.per' not found
+```
+
+```r
 # Transitions per year
 df.wide$pension06[df.wide$x2005 != 7 & df.wide$x2006 == 7] <- 1
+```
+
+```
+## Error: object 'df.wide' not found
+```
+
+```r
 df.wide$pension06[is.na(df.wide$pension06)] <- 0
+```
+
+```
+## Error: object 'df.wide' not found
+```
+
+```r
 df.wide$pension07[df.wide$x2006 != 7 & df.wide$x2007 == 7] <- 1
+```
+
+```
+## Error: object 'df.wide' not found
+```
+
+```r
 df.wide$pension07[is.na(df.wide$pension07)] <- 0
+```
+
+```
+## Error: object 'df.wide' not found
+```
+
+```r
 df.wide$pension08[df.wide$x2007 != 7 & df.wide$x2008 == 7] <- 1
+```
+
+```
+## Error: object 'df.wide' not found
+```
+
+```r
 df.wide$pension08[is.na(df.wide$pension08)] <- 0
+```
+
+```
+## Error: object 'df.wide' not found
+```
+
+```r
 df.wide$pension09[df.wide$x2008 != 7 & df.wide$x2009 == 7] <- 1
+```
+
+```
+## Error: object 'df.wide' not found
+```
+
+```r
 df.wide$pension09[is.na(df.wide$pension09)] <- 0
+```
+
+```
+## Error: object 'df.wide' not found
+```
+
+```r
 df.wide$pension10[df.wide$x2009 != 7 & df.wide$x2010 == 7] <- 1
+```
+
+```
+## Error: object 'df.wide' not found
+```
+
+```r
 df.wide$pension10[is.na(df.wide$pension10)] <- 0
+```
+
+```
+## Error: object 'df.wide' not found
+```
+
+```r
 # duplicates?
 df.wide$dup <- duplicated(df.wide$PER_ID)
+```
+
+```
+## Error: object 'df.wide' not found
+```
+
+```r
 dat.uniq <- df.wide[df.wide$dup == FALSE,]
+```
+
+```
+## Error: object 'df.wide' not found
+```
+
+```r
 dat.uniq$dup <- NULL
+```
+
+```
+## Error: object 'dat.uniq' not found
+```
+
+```r
 df.wide <- dat.uniq
+```
+
+```
+## Error: object 'dat.uniq' not found
+```
+
+```r
 
 df.long <- melt(df.wide, id.vars =c("PER_ID","RB020","RB030",
                                     #"HX100","HX090",
@@ -437,30 +747,125 @@ df.long <- melt(df.wide, id.vars =c("PER_ID","RB020","RB030",
                 measure.vars=c("pension06","pension07",
                                "pension08","pension09",
                                "pension10"))
+```
+
+```
+## Error: object 'df.wide' not found
+```
+
+```r
 names(df.long) <- c("PER_ID","RB020","RB030",#"HX100","HX090",
                     "PY010G_Z",
                     "year","pensionEnter")
+```
+
+```
+## Error: object 'df.long' not found
+```
+
+```r
 
 df.long$year <- as.character(df.long$year)
+```
+
+```
+## Error: object 'df.long' not found
+```
+
+```r
 
 df.long$year[df.long$year == "pension06"] <- "2006"
+```
+
+```
+## Error: object 'df.long' not found
+```
+
+```r
 df.long$year[df.long$year == "pension07"] <- "2007"
+```
+
+```
+## Error: object 'df.long' not found
+```
+
+```r
 df.long$year[df.long$year == "pension08"] <- "2008"
+```
+
+```
+## Error: object 'df.long' not found
+```
+
+```r
 df.long$year[df.long$year == "pension09"] <- "2009"
+```
+
+```
+## Error: object 'df.long' not found
+```
+
+```r
 df.long$year[df.long$year == "pension10"] <- "2010"
+```
+
+```
+## Error: object 'df.long' not found
+```
+
+```r
 
 
 df.long$year <- factor(df.long$year)
+```
+
+```
+## Error: object 'df.long' not found
+```
+
+```r
 df.long$year <- as.numeric(levels(df.long$year))[df.long$year]
+```
+
+```
+## Error: object 'df.long' not found
+```
+
+```r
 
 df.longx <- df.long[df.long$pensionEnter == 1, ] # all we need are the new pensioners
+```
+
+```
+## Error: object 'df.long' not found
+```
+
+```r
 
 datEnterPension <- merge(df.longx[,c("RB020","RB030","year","pensionEnter")],
                           dat.per, 
                           by=c("RB020","RB030"), 
                           all.x=TRUE)
+```
+
+```
+## Error: object 'df.longx' not found
+```
+
+```r
 datEnterPension$time <- datEnterPension$RB010 - datEnterPension$year
+```
+
+```
+## Error: object 'datEnterPension' not found
+```
+
+```r
 save(datEnterPension, file="data/datEnterPension.RData")
+```
+
+```
+## Error: object 'datEnterPension' not found
 ```
 
 
@@ -471,19 +876,33 @@ save(datEnterPension, file="data/datEnterPension.RData")
 
 
 ```r
-datTp <- datEnterPension[datEnterPension$year==datEnterPension$RB010,]
-tblp <- as.data.frame(table(datTp$RB020,datTp$year))
+datTp <- datEnterPension[datEnterPension$year == datEnterPension$RB010, ]
+```
+
+```
+## Error: object 'datEnterPension' not found
+```
+
+```r
+tblp <- as.data.frame(table(datTp$RB020, datTp$year))
+```
+
+```
+## Error: object 'datTp' not found
+```
+
+```r
 
 library(ggplot2)
 
-ggplot(data=tblp, aes(x=factor(Var2),y=Freq,label=Freq)) + 
-  geom_bar(stat="identity",position="dodge") + 
-  geom_text(vjust=-0.2) + 
-  labs(title="Number of individuals entering to pension") + 
-  facet_wrap(~Var1, ncol=4)
+ggplot(data = tblp, aes(x = factor(Var2), y = Freq, label = Freq)) + geom_bar(stat = "identity", 
+    position = "dodge") + geom_text(vjust = -0.2) + labs(title = "Number of individuals entering to pension") + 
+    facet_wrap(~Var1, ncol = 4)
 ```
 
-![plot of chunk subsetenterpensionhistogram](figure/subsetenterpensionhistogram.png) 
+```
+## Error: object 'tblp' not found
+```
 
 
 
@@ -493,14 +912,13 @@ ggplot(data=tblp, aes(x=factor(Var2),y=Freq,label=Freq)) +
 
 ```r
 library(ggplot2)
-ggplot(data=datTp, 
-       aes(x=factor(RB010),y=RX010)) + 
-  geom_boxplot() +
-  labs(title="Age of retirees") +
-  facet_wrap(~RB020, ncol=4)
+ggplot(data = datTp, aes(x = factor(RB010), y = RX010)) + geom_boxplot() + labs(title = "Age of retirees") + 
+    facet_wrap(~RB020, ncol = 4)
 ```
 
-![plot of chunk subsetfigpension1](figure/subsetfigpension1.png) 
+```
+## Error: object 'datTp' not found
+```
 
 
 
@@ -513,17 +931,22 @@ GHurl <- getURL("https://raw.github.com/muuankarski/data/master/europe/eu_cntry.
 regime <- read.csv(text = GHurl)
 
 library(ggplot2)
-datTp <- merge(datTp,regime,by.x="RB020",by.y="NUTS_ID")
-ggplot(data=datTp, 
-       aes(x=factor(reorder(RB020, RX010, median, na.rm=TRUE)),
-           y=RX010,
-           fill=regime_en)) + 
-  geom_boxplot() +
-  labs(title="Age of retirees") +
-  theme(legend.position="top")
+datTp <- merge(datTp, regime, by.x = "RB020", by.y = "NUTS_ID")
 ```
 
-![plot of chunk subsetfigpension2](figure/subsetfigpension2.png) 
+```
+## Error: object 'datTp' not found
+```
+
+```r
+ggplot(data = datTp, aes(x = factor(reorder(RB020, RX010, median, na.rm = TRUE)), 
+    y = RX010, fill = regime_en)) + geom_boxplot() + labs(title = "Age of retirees") + 
+    theme(legend.position = "top")
+```
+
+```
+## Error: object 'datTp' not found
+```
 
 
 
@@ -533,14 +956,14 @@ ggplot(data=datTp,
 
 ```r
 library(ggplot2)
-ggplot(data=datEnterPension, 
-       aes(x=factor(time),y=PY010G)) + 
-  geom_boxplot() +
-  labs(title="Distribution of absolute employee cash income (gross) before and after retirement") +
-  coord_cartesian(ylim=c(0,50000))
+ggplot(data = datEnterPension, aes(x = factor(time), y = PY010G)) + geom_boxplot() + 
+    labs(title = "Distribution of absolute employee cash income (gross) before and after retirement") + 
+    coord_cartesian(ylim = c(0, 50000))
 ```
 
-![plot of chunk subsetpensionplotAbsobox](figure/subsetpensionplotAbsobox.png) 
+```
+## Error: object 'datEnterPension' not found
+```
 
 
 
@@ -550,20 +973,20 @@ ggplot(data=datEnterPension,
 
 ```r
 library(ggplot2)
-ggplot(datEnterPension, aes(x=factor(time),y=PY010G,group=PER_ID)) +
-  geom_point(alpha=.2) + geom_line(alpha=.2) +
-  coord_cartesian(ylim=c(0,50000)) +
-  facet_wrap(~RB020, ncol=2) +
-  labs(title="Change in absolute Employee cash or near cash income(gross) when retiring") +
-  theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) +
-  geom_vline(xintercept = 6, color="orange", type="dashed")
+ggplot(datEnterPension, aes(x = factor(time), y = PY010G, group = PER_ID)) + 
+    geom_point(alpha = 0.2) + geom_line(alpha = 0.2) + coord_cartesian(ylim = c(0, 
+    50000)) + facet_wrap(~RB020, ncol = 2) + labs(title = "Change in absolute Employee cash or near cash income(gross) when retiring") + 
+    theme(axis.text.x = element_text(angle = 90, vjust = 0.5)) + geom_vline(xintercept = 6, 
+    color = "orange", type = "dashed")
 ```
 
-![plot of chunk subsetpensionplotAbso](figure/subsetpensionplotAbso.png) 
+```
+## Error: object 'datEnterPension' not found
+```
 
 
 
-Tilastolliset pitkittäisanalyysit 
+Statistical analysis
 ===============================
 
 
@@ -571,12 +994,13 @@ Tilastolliset pitkittäisanalyysit
 
 
 
+-----------
+-----------
 
-Sotkua..
-================================
 
-household data
-----------------------
+**Some mess here**
+
+**household data*
 
 
 ```r

@@ -1,49 +1,48 @@
 ---
 title: Poolatun Pitkittäisaineiston rakentaminen EU-silc datasta
 author: Markus Kainu
-date: Feb 17, 2014
+date: 
 ---
 
 
-Ajatus
+`Last updated`:
+```{r, echo=FALSE}
+Sys.time()
+```
+
+
+Idea
 ===============================
 
-Pitkittäiaineiston rakentamisen sekä pitkittäisanalyysien tekeminen jaetaan tässä kolmeen vaiheeseen:
+The point of this tutorial is to present a simple reproducible example on how longitudinal analysis can be run in R-environment.
 
-1. raakadatojen yhdistäminen ja poolaaminen eri vuosilta
-2. tiettyjen tapahtumien eristäminen ja diskreetin datan luominen
-3. tilastolliset pitkittäisanalyysit
+In this document I will focus on three things 
 
-Ensimmäisen vaiheen raakadatojen yhdistäminen on automatisoitu [r.eusilc](https://github.com/muuankarski/r.eusilc)-paketiksi. Datojen poolaaminen vaati jo käsityötä, sillä eri vuosien datat eroavat toisistaan muuttujien osalta.
+1. merging the raw .csv longitudinal files and pooling across waves
+2. creating a descrete time dataset for further longitudinal analysis
+3. running simple survival analysis on that data
 
-Toinen vaihe on työläin ja riippuu paljon tapahtumasta, jota tarkastellaan. Mä kirjoittaisin tätä maanantaina valmiiksi jos Henna voit kertoa tarkemmin mistä tapahtumasta on kyse ja millä muuttuj(a/i)lla olet sitä aikonut tutkia. Sekä taustamuuttujat ja vastemuuttujat kiinnostaisi. Kirjoittaisin nämä skriptit + dokumentaation mahdollisimman pitkälle, jotta voitaisiin tiistaina käyttään enemmän aikaa siihen miksi näin tehdään kuin siihen mitä tehdään.
+In this playful demo I'm interested in retirement. But, first let's take a look at the mering the raw data.
 
-Teen kaiken vaan R:llä koska osaan sen ja koska R-komentoja on mahdollista ajaa suoraan SPSS:stä (tuore ohje 2013 lokakuulta: http://www.ibm.com/developerworks/library/ba-call-r-spss/) tai upottaa Statan ja SAS:in työvirtoihin.
-
-Kolmanteen vaiheeseen mua kiinnostaa se, mitä pitkittäisanalyysejä olet ajatellut tehdä ja millä ohjelmalla. Mulla on valmiina jotain survival analyysejä and sequence analyysejä, ja voin yrittää soveltaa niitä sun tapaukseen ihan esimerkkinä jos ehdin. 
-
-
-Raakadatojen (paneeli) yhdistäminen ja poolaaminen eri vuosilta 
+Merging the raw data files and pooling across waves
 ===============================
 
-
-Eu-silc datat toimitetaan laser-levyllä, joissa yhdellä levyllä on **yhden vuoden** ja joko *cross-sectional* tai *longitudinal* -versio datasta. .csv-muotoiset data on nimetty tyyliin `UDB_L06D_ver 2006-2 from 01-03-2009`, joka tässä tapauksessa tarkoittaa
+Eu-silc datasets are delivered on a laser disc, where you have on each disc a four .csv files representing one either *cross-sectional* or *longitudinal* version of data. Raw .csv-files are named as `UDB_L06D_ver 2006-2 from 01-03-2009`, that in this case would mean:
 
 - user database
 - longitudinal
 - d-file (household register)
-- vuoden 2006 datan revision 2
-- julkaistu vuonna 2009
+- from year 2006 revision 2
+- published year 2009
 
-Jotta näiden ohjeiden noudattaminen onnistuu, tulee raakadatojen nimiä muuttaa siten, että:
+In order to follow this demo you will have to rename the .csv files following the example below:
 
 - `UDB_L06R_ver 2006-2 from 01-03-2009.csv` =>> `r_file.csv`
 - `UDB_L06P_ver 2006-2 from 01-03-2009.csv` =>> `p_file.csv`
 - `UDB_L06D_ver 2006-2 from 01-03-2009.csv` =>> `d_file.csv`
 - `UDB_L06H_ver 2006-2 from 01-03-2009.csv` =>> `h_file.csv`
 
-tämä nimimuutos siksi, että automatiointi on helpompi tehdä. Suosittelen sijoittamaan raakatiedostot esim. alla olevan tyyppiseen hakemistorakenteeseen:
-
+in addition to renaming you should also consider structuring your raw data archive into something like (this is how my data is oranised for this demo):
 
 ```{r, eval=FALSE}
 
@@ -71,7 +70,7 @@ data
 |    |      |    |-------- p_file.csv
 |    |      |    |-------- d_file.csv
 |    |      |    |-------- h_file.csv
-|    |-----merged
+|    |-----demo
 |    |      |---2008
 |    |      |     |----- per_longi.csv
 |    |      |     |----- hh_longi.csv
@@ -90,6 +89,7 @@ data
 
 ```
 
+
 Tässä esimerkissä raakadata vuoden 2010 pitkittäisaneistolle ovat muotoa: `~/data/eu_silc/2010/longi_rev1`, jolloin ko. hakemistossa olisi neljä .csv tiedostoa pitkittäisaineisosta vuoden 2010 revision 1.
 
 Raakadatojen (paneeli) yhdistäminen
@@ -97,7 +97,9 @@ Raakadatojen (paneeli) yhdistäminen
 
 Nyt olemme kiinnostuneet vain yksilötason datoista, joten lataamme ensin kaikki 2010 ja aikaisemmin julkaistut yksilötason paneelidatat R:ään sekä tallennamme yhdistellyt data uudeen hakemistoon. Käytämme siinä apuna r.eusilc-pakettia.
 
-### Paketin asentaminen
+**Installing r.eusilc-package**
+
+For installation you need to have **devtools**-package installed with  `install.packages("devtools")`. In Windows you will need [RTools](http://cran.r-project.org/bin/windows/Rtools/index.html) to be installed before installing **devtools**-package.
 
 ```{r, eval=FALSE}
 library(devtools)
@@ -105,13 +107,20 @@ install_github("r.eusilc","muuankarski")
 library(r.eusilc)
 ```
 
-### Yksilötason raakadatojen yhdistäminen
 
-Seuraava rivit lukevat raakadatat, yhdistävät sen ja kirjoittavat .csv-muotoon demo-kansioon. `data.table=TRUE` attribuutti käyttää [data.table](http://cran.r-project.org/web/packages/data.table/index.html)-paketin hieman eksperimentaalia `fread`-funktiota .csv-datojen lukemiseen, joka on huimasti `read.csv`-funktiota nopeampi. `data.table=TRUE` käyttö edellyttää pakettien **data.table** ja **bit64** asennusta.
+**Merging individual level longitudinal datasets**
 
+We are using here only variables from personal register and personal data files. First we are merging the files from three waves 2008,2009 and 2010. Again, each panel data has rows from that year, and from three previous years (few countries have longer panels). Below, we subset a ~35 variables from each data from 16 countries.
 
-```{rloaddata, eval=TRUE, cache=TRUE, warning=FALSE, message=FALSE}
-# valitaan muuttujat
+The following lines will 1) read the raw data, 2) merge the personal level files and 3) save the ouput in `.csv`-format in `demo/year`-folder.
+
+<!--
+`data.table=TRUE` attribuutti käyttää [data.table](http://cran.r-project.org/web/packages/data.table/index.html)-paketin hieman eksperimentaalia `fread`-funktiota .csv-datojen lukemiseen, joka on huimasti `read.csv`-funktiota nopeampi. `data.table=TRUE` käyttö edellyttää pakettien **data.table** ja **bit64** asennusta. (Suositellaan vain kokeneille käyttäjille)
+-->
+
+```{rloaddata, cache=TRUE, warning=FALSE, message=FALSE, eval=FALSE}
+# valitaan muuttujat. var.list1 datas other than 2008. 
+# (2008) does not have variable PL031
 var.list1 <- c("PER_ID_Y", # unique year, cntry, personal ID
               "PER_ID", # unique cntry, personal ID
               "RB010",  # year
@@ -216,43 +225,82 @@ per_longi_2010 <- merge_longi_personal(origin.path="~/data/eu_silc/2010/longi_re
 ```
 
 
-Eri vuosien datojen yhdistäminen
+Pooling data from different waves
 ------------------------------------
 
-Mikäli 
+The challenge in pooling the waves is that names or numbers of variables is not same across the waves. In the case of retirement we have work a bit on this. But to be on the clear the logic here is a minimal  example of how to this in the case where your variables of interest have **identical names** and **identical coding scheme** across waves.
 
+**Example one: identical variable names across waves**
 
-### Helppo esimerkki
-
-```{rsubsetting_simple, cache=TRUE, message=FALSE, warning=FALSE}
+```{rsubsetting_simple, cache=TRUE, message=FALSE, warning=FALSE, eval=FALSE}
+# Define variables of interest
 var.list <- c("PER_ID_Y", # unique year, cntry, personal ID
               "RB010",  # year
               "RB020" # country
               )
-
+# subset only those variables from panel waves and rbind them on top of each other
 dat <- rbind(per_longi_2008[,var.list],
              per_longi_2009[,var.list],
              per_longi_2010[,var.list])
 
-# merge the panels datas
+# As there are panel continuing across files 
+# you have to remove the duplicated country-year-id combinations
 dat$dup <- duplicated(dat$PER_ID_Y)
-dat.uniq <- dat[dat$dup == FALSE,]
-dat.uniq$dup <- NULL
-dat.per <- dat.uniq
+dat.per <- dat[dat$dup == FALSE,]
+dat.per$dup <- NULL
 ```
 
 
+**A more complicated example with retirement**
 
+Again, I'm interested in **retirement** in this demo and i will use the variable [`PL030/PL031`](http://www.gesis.org/?id=8063#PL030) (*Self-defined current economic status*) as my main source of information on the event (entry to pension from work). As those variables are "complementary"" (individuals have value in either of variable (missing data still substantial problem!!) a synthetic variable `econStatus` has to be created. In the following lines it done following a logic: 
 
-### Monimutkaisempi esimerkki
+1. a value from PL031 is taken first
+2. if it is missing, the value from PL030 is taken
+3. a output varible `econStatus` is simultaneuosly recoded to match PL031 coding. The results is a variable with values as in the table below.
+
+Table: values and labels in variable PL031 AND in output var `econStatus`
+
+| Value | Label |
+| ----- | ------ |
+| 1 | Employee working full-time |
+| 2 | Employee working part-time |
+| 3 | Self-employed working full-time (including family worker) |
+| 4 | Self-employed working part-time (including family worker) |
+| 5 | Unemployed |
+| 6 | Pupil, student, further training, unpaid work experience |
+| 7 | In retirement or in early retirement or has given up business |
+| 8 | Permanently disabled or/and unfit to work |
+| 9 | In compulsory military community or service |
+| 10 | Fulfilling domestic tasks and care responsibilities |
+| 11 | Other inactive person |
+
+In other words, entry to pension system is coded as change from `econStatus != 7` to `econStatus == 7`.
+
+```{r, eval=FALSE}
+dfX$econStatus <- ifelse(is.na(dfX$PL031), dfX$PL030rec, dfX$PL031)
+```
+
+1. merging the original register and data files both at the household and personal level from year 2008, 2009 and 2010 (each containing data from that year and three years before)
+2. subsetting same variables from each datasets 
+    - same set of variables from personal08, personal09 and personal10 datas
+3. combining the datasets with identical variables
+    - one dataset including all the cases from personal files (~4 million cases)
+    - another dataset including all the cases from household files (~2 million cases)
+4. subsetting only cases with unique `year-cntry-id` -combination (longitudinal data files are overlapping)
+5. merging the needed household level variables with personal data
+5. manipulating the dataset so that the year of exit/entry is found plus the required information from years before and after the event
 
 
 ```{rsubsetting_compilated, cache=TRUE, message=FALSE, warning=FALSE}
 
-# load("~/data/eu_silc/demo/2008/per_merge_longi.RData")
-# load("~/data/eu_silc/demo/2009/per_merge_longi.RData")
-# load("~/data/eu_silc/demo/2010/per_merge_longi.RData")
-
+load("~/data/eu_silc/demo/2008/per_merge_longi.RData")
+per_longi_2008 <- per_merge_longi
+load("~/data/eu_silc/demo/2009/per_merge_longi.RData")
+per_longi_2009 <- per_merge_longi
+load("~/data/eu_silc/demo/2010/per_merge_longi.RData")
+per_longi_2010 <- per_merge_longi
+rm(per_merge_longi)
 # A joint variable of var (PL030/PL031",  # Self-defined current economic status)
 # have to constructed before subsetting the data
 #
@@ -344,12 +392,14 @@ var.list <- c("PER_ID_Y", # unique year, cntry, personal ID
 dat <- rbind(per_longi_2008[,var.list],
              per_longi_2009[,var.list],
              per_longi_2010[,var.list])
-
+rm(list=setdiff(ls(), "dat"))
 # merge the panels datas
+# you have to remove the duplicated country-year-id combinations
 dat$dup <- duplicated(dat$PER_ID_Y)
-dat.uniq <- dat[dat$dup == FALSE,]
-dat.uniq$dup <- NULL
-dat.per <- dat.uniq
+dat.per <- dat[dat$dup == FALSE,]
+dat.per$dup <- NULL
+
+# because of data.table -package
 dat.per$RB030 <- as.numeric(dat.per$RB030)
 
 
@@ -526,7 +576,7 @@ ggplot(datEnterPension, aes(x=factor(time),y=PY010G,group=PER_ID)) +
 ```
 
 
-Tilastolliset pitkittäisanalyysit 
+Statistical analysis
 ===============================
 
 
@@ -534,12 +584,13 @@ Tilastolliset pitkittäisanalyysit
 
 
 
+-----------
+-----------
 
-Sotkua..
-================================
 
-household data
-----------------------
+**Some mess here**
+
+**household data*
 
 ```{r, eval=FALSE}
 
